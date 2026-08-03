@@ -132,7 +132,11 @@ const editingInfo = computed(() => {
 useKeyboard({
   Delete: handleDelete,
   Backspace: handleDelete,
-  Escape: () => { cancelDrawing(); selection.clearSelection(); cancelEditing(); },
+  Escape: () => {
+    cancelDrawing();
+    selection.clearSelection();
+    cancelEditing();
+  },
   ArrowUp: (e: KeyboardEvent) => nudgeNode(e, 0, -1),
   ArrowDown: (e: KeyboardEvent) => nudgeNode(e, 0, 1),
   ArrowLeft: (e: KeyboardEvent) => nudgeNode(e, -1, 0),
@@ -142,7 +146,13 @@ useKeyboard({
 function handleDelete() {
   // Don't delete nodes when editing text
   if (editingNodeId.value) return;
-  if (selection.selectedNodeId.value) { model.removeNode(selection.selectedNodeId.value); selection.clearSelection(); } else if (selection.selectedEdgeId.value) { model.removeEdge(selection.selectedEdgeId.value); selection.clearSelection(); }
+  if (selection.selectedNodeId.value) {
+    model.removeNode(selection.selectedNodeId.value);
+    selection.clearSelection();
+  } else if (selection.selectedEdgeId.value) {
+    model.removeEdge(selection.selectedEdgeId.value);
+    selection.clearSelection();
+  }
 }
 
 function nudgeNode(e: KeyboardEvent, dx: number, dy: number) {
@@ -156,7 +166,10 @@ function nudgeNode(e: KeyboardEvent, dx: number, dy: number) {
 }
 
 function onCanvasClick() {
-  if (!isDrawing()) { commitEditing(); selection.clearSelection(); }
+  if (!isDrawing()) {
+    commitEditing();
+    selection.clearSelection();
+  }
 }
 function onNodeClick(nodeId: string) {
   if (isDrawing()) return;
@@ -184,19 +197,39 @@ function onAnchorMouseDown(nodeId: string, anchor: AnchorPosition) {
   }
 }
 
-function onAnchorMouseUp(nodeId: string, anchor: AnchorPosition) { if (isDrawing()) finishDrawing(nodeId, anchor); }
-function onDrawingCancel() { cancelDrawing(); }
-function onDrawingUpdate(cx: number, cy: number) { if (isDrawing()) updateDrawing(cx, cy); }
-function onCanvasDrop(nodeType: NodeType, cx: number, cy: number, snapSize: number) { sidebar.handleDrop({ dataTransfer: { getData: () => nodeType } } as unknown as DragEvent, cx, cy, snapSize); }
-function onCanvasWheel(event: WheelEvent, rect: DOMRect) { handleWheel(event, rect); }
-function onPanMove(panX: number, panY: number) { viewport.value.panX = panX; viewport.value.panY = panY; }
+function onAnchorMouseUp(nodeId: string, anchor: AnchorPosition) {
+  if (isDrawing()) finishDrawing(nodeId, anchor);
+}
+function onDrawingCancel() {
+  cancelDrawing();
+}
+function onDrawingUpdate(cx: number, cy: number) {
+  if (isDrawing()) updateDrawing(cx, cy);
+}
+function onCanvasDrop(nodeType: NodeType, cx: number, cy: number, snapSize: number) {
+  sidebar.handleDrop(
+    { dataTransfer: { getData: () => nodeType } } as unknown as DragEvent,
+    cx,
+    cy,
+    snapSize,
+  );
+}
+function onCanvasWheel(event: WheelEvent, rect: DOMRect) {
+  handleWheel(event, rect);
+}
+function onPanMove(panX: number, panY: number) {
+  viewport.value.panX = panX;
+  viewport.value.panY = panY;
+}
 
 function onLabelCommit(text: string) {
   if (editingNodeId.value) model.updateNodeLabel(editingNodeId.value, text);
   cancelEditing();
 }
 
-function cancelEditing() { editingNodeId.value = null; }
+function cancelEditing() {
+  editingNodeId.value = null;
+}
 
 function commitEditing() {
   if (!editingNodeId.value) return

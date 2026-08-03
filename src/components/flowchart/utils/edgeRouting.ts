@@ -120,7 +120,10 @@ function safeCrossCoord(axis: 'x' | 'y', a: number, b: number, pair: ZonePair): 
   const mid = (a + b) / 2;
   let blocked = false;
   for (const int of intervals) {
-    if (mid >= int.min && mid <= int.max) { blocked = true; break; }
+    if (mid >= int.min && mid <= int.max) {
+      blocked = true;
+      break;
+    }
   }
   if (!blocked) return mid;
 
@@ -685,8 +688,12 @@ function uniqueSorted(values: number[]): number[] {
 
 // ─── Geometry helpers ────────────────────────────────────────────────────
 
-function isHSeg(a: Point, b: Point): boolean { return Math.abs(a.y - b.y) < 0.5; }
-function isVSeg(a: Point, b: Point): boolean { return Math.abs(a.x - b.x) < 0.5; }
+function isHSeg(a: Point, b: Point): boolean {
+  return Math.abs(a.y - b.y) < 0.5;
+}
+function isVSeg(a: Point, b: Point): boolean {
+  return Math.abs(a.x - b.x) < 0.5;
+}
 
 export function buildRoundedPath(points: Point[], _cornerRadius: number): string {
   const cleaned: Point[] = [points[0]];

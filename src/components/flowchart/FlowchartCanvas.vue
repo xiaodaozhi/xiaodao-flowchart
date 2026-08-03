@@ -383,7 +383,8 @@ function sc(sx: number, sy: number) {
 }
 
 function findAnchorNearPoint(nodeId: string, px: number, py: number): AnchorPosition | null {
-  const n = getNode(nodeId); if (!n) return null;
+  const n = getNode(nodeId);
+  if (!n) return null;
   for (const a of ['top', 'right', 'bottom', 'left'] as AnchorPosition[]) {
     const p = getAnchorDisplayPoint(n, a);
     if (Math.hypot(px - p.x, py - p.y) < 20) return a;
@@ -395,7 +396,8 @@ function onPointerDown(event: PointerEvent) {
   if (event.button === 1) {
     drag = { type: 'pan', startPX: event.clientX, startPY: event.clientY, startPanX: props.viewport.panX, startPanY: props.viewport.panY };
     svgRef.value!.setPointerCapture(event.pointerId);
-    event.preventDefault(); return;
+    event.preventDefault();
+    return;
   }
   if (event.button !== 0) return;
   const t = event.target as Element;
@@ -405,9 +407,19 @@ function onPointerDown(event: PointerEvent) {
     for (const n of props.nodes) {
       if (n.id === props.drawingState.sourceNodeId) continue;
       const a = findAnchorNearPoint(n.id, pc.x, pc.y);
-      if (a) { emit('anchorMouseUp', n.id, a); drag = { type: 'none' }; hoveredNodeId.value = null; hoveredAnchor.value = null; return; }
+      if (a) {
+        emit('anchorMouseUp', n.id, a);
+        drag = { type: 'none' };
+        hoveredNodeId.value = null;
+        hoveredAnchor.value = null;
+        return;
+      }
     }
-    emit('drawingCancel'); drag = { type: 'none' }; hoveredNodeId.value = null; hoveredAnchor.value = null; return;
+    emit('drawingCancel');
+    drag = { type: 'none' };
+    hoveredNodeId.value = null;
+    hoveredAnchor.value = null;
+    return;
   }
 
   // Edge drag handle (source/target endpoint)
@@ -419,14 +431,16 @@ function onPointerDown(event: PointerEvent) {
     isDraggingEdgeHandle.value = true;
     edgeHandleDragEdgeId.value = eid;
     svgRef.value!.setPointerCapture(event.pointerId);
-    event.preventDefault(); return;
+    event.preventDefault();
+    return;
   }
 
   const eg = t.closest('[data-edge-id]');
   if (eg) {
     const eid = eg.getAttribute('data-edge-id')!;
     emit('edgeClick', eid);
-    event.preventDefault(); return;
+    event.preventDefault();
+    return;
   }
 
   const hel = t.closest('[data-handle-id]');
@@ -434,9 +448,20 @@ function onPointerDown(event: PointerEvent) {
     const hid = hel.getAttribute('data-handle-id')! as ResizeHandleId;
     const nid = t.closest('[data-node-id]')!.getAttribute('data-node-id')!;
     const n = getNode(nid)!;
-    drag = { type: 'resize', nodeId: nid, handle: hid, pnx: pc.x, pny: pc.y, nx: n.x, ny: n.y, nw: n.width, nh: n.height };
+    drag = {
+      type: 'resize',
+      nodeId: nid,
+      handle: hid,
+      pnx: pc.x,
+      pny: pc.y,
+      nx: n.x,
+      ny: n.y,
+      nw: n.width,
+      nh: n.height,
+    };
     svgRef.value!.setPointerCapture(event.pointerId);
-    event.preventDefault(); return;
+    event.preventDefault();
+    return;
   }
 
   const ael = t.closest('[data-anchor]');
@@ -446,7 +471,8 @@ function onPointerDown(event: PointerEvent) {
     emit('anchorMouseDown', nid, an);
     drag = { type: 'drawing', sourceNodeId: nid, sourceAnchor: an };
     svgRef.value!.setPointerCapture(event.pointerId);
-    event.preventDefault(); return;
+    event.preventDefault();
+    return;
   }
 
   const ng = t.closest('[data-node-id]');
@@ -454,9 +480,14 @@ function onPointerDown(event: PointerEvent) {
     const nid = ng.getAttribute('data-node-id')!;
     const now = Date.now();
     if (lastClickNodeId === nid && now - lastClickTime < DBL) {
-      emit('nodeDblClick', nid); lastClickNodeId = null; lastClickTime = 0; event.preventDefault(); return;
+      emit('nodeDblClick', nid);
+      lastClickNodeId = null;
+      lastClickTime = 0;
+      event.preventDefault();
+      return;
     }
-    lastClickNodeId = nid; lastClickTime = now;
+    lastClickNodeId = nid;
+    lastClickTime = now;
     emit('nodeClick', nid);
     drag = { type: 'clickPending', nodeId: nid, startPX: event.clientX, startPY: event.clientY };
     event.preventDefault(); return;
@@ -486,8 +517,13 @@ function onPointerMove(event: PointerEvent) {
         // Check if the other endpoint is anchored to this node; don't restrict further
       }
       for (const a of ['top', 'right', 'bottom', 'left'] as AnchorPosition[]) {
-        const p = getAnchorDisplayPoint(n, a); const d = Math.hypot(pc.x - p.x, pc.y - p.y);
-        if (d < 25 && d < bd) { bd = d; bn = n.id; ba = a; }
+        const p = getAnchorDisplayPoint(n, a);
+        const d = Math.hypot(pc.x - p.x, pc.y - p.y);
+        if (d < 25 && d < bd) {
+          bd = d;
+          bn = n.id;
+          ba = a;
+        }
       }
     }
     hoveredNodeId.value = bn; hoveredAnchor.value = ba;
@@ -520,11 +556,18 @@ function onPointerMove(event: PointerEvent) {
     for (const n of props.nodes) {
       if (n.id === sid) continue;
       for (const a of ['top', 'right', 'bottom', 'left'] as AnchorPosition[]) {
-        const p = getAnchorDisplayPoint(n, a); const d = Math.hypot(pc.x - p.x, pc.y - p.y);
-        if (d < 25 && d < bd) { bd = d; bn = n.id; ba = a; }
+        const p = getAnchorDisplayPoint(n, a);
+        const d = Math.hypot(pc.x - p.x, pc.y - p.y);
+        if (d < 25 && d < bd) {
+          bd = d;
+          bn = n.id;
+          ba = a;
+        }
       }
     }
-    hoveredNodeId.value = bn; hoveredAnchor.value = ba; return;
+    hoveredNodeId.value = bn;
+    hoveredAnchor.value = ba;
+    return;
   }
 
   if (drag.type === 'none') return;
@@ -541,25 +584,61 @@ function onPointerMove(event: PointerEvent) {
     let nx = drag.nx, ny = drag.ny, nw = drag.nw, nh = drag.nh;
     const MIN = 40, MINH = 30;
     switch (drag.handle) {
-      case 'top-left':     nx = drag.nx + dx; ny = drag.ny + dy; nw = drag.nw - dx; nh = drag.nh - dy; break;
-      case 'top-center':   ny = drag.ny + dy; nh = drag.nh - dy; break;
-      case 'top-right':    ny = drag.ny + dy; nw = drag.nw + dx; nh = drag.nh - dy; break;
-      case 'middle-left':  nx = drag.nx + dx; nw = drag.nw - dx; break;
-      case 'middle-right': nw = drag.nw + dx; break;
-      case 'bottom-left':  nx = drag.nx + dx; nw = drag.nw - dx; nh = drag.nh + dy; break;
-      case 'bottom-center':nh = drag.nh + dy; break;
-      case 'bottom-right': nw = drag.nw + dx; nh = drag.nh + dy; break;
+      case 'top-left':
+        nx = drag.nx + dx;
+        ny = drag.ny + dy;
+        nw = drag.nw - dx;
+        nh = drag.nh - dy;
+        break;
+      case 'top-center':
+        ny = drag.ny + dy;
+        nh = drag.nh - dy;
+        break;
+      case 'top-right':
+        ny = drag.ny + dy;
+        nw = drag.nw + dx;
+        nh = drag.nh - dy;
+        break;
+      case 'middle-left':
+        nx = drag.nx + dx;
+        nw = drag.nw - dx;
+        break;
+      case 'middle-right':
+        nw = drag.nw + dx;
+        break;
+      case 'bottom-left':
+        nx = drag.nx + dx;
+        nw = drag.nw - dx;
+        nh = drag.nh + dy;
+        break;
+      case 'bottom-center':
+        nh = drag.nh + dy;
+        break;
+      case 'bottom-right':
+        nw = drag.nw + dx;
+        nh = drag.nh + dy;
+        break;
     }
-    if (nw < MIN) { if (drag.handle.includes('left')) nx = drag.nx + drag.nw - MIN; nw = MIN; }
-    if (nh < MINH) { if (drag.handle.includes('top')) ny = drag.ny + drag.nh - MINH; nh = MINH; }
+    if (nw < MIN) {
+      if (drag.handle.includes('left')) nx = drag.nx + drag.nw - MIN;
+      nw = MIN;
+    }
+    if (nh < MINH) {
+      if (drag.handle.includes('top')) ny = drag.ny + drag.nh - MINH;
+      nh = MINH;
+    }
 
     if (drag.handle === 'top-left' || drag.handle === 'top-right' || drag.handle === 'bottom-left' || drag.handle === 'bottom-right') {
-      nx = snapToGrid(nx, snapSize.value); ny = snapToGrid(ny, snapSize.value);
-      nw = snapToGrid(nw, snapSize.value); nh = snapToGrid(nh, snapSize.value);
+      nx = snapToGrid(nx, snapSize.value);
+      ny = snapToGrid(ny, snapSize.value);
+      nw = snapToGrid(nw, snapSize.value);
+      nh = snapToGrid(nh, snapSize.value);
     } else if (drag.handle === 'top-center' || drag.handle === 'bottom-center') {
-      ny = snapToGrid(ny, snapSize.value); nh = snapToGrid(nh, snapSize.value);
+      ny = snapToGrid(ny, snapSize.value);
+      nh = snapToGrid(nh, snapSize.value);
     } else {
-      nx = snapToGrid(nx, snapSize.value); nw = snapToGrid(nw, snapSize.value);
+      nx = snapToGrid(nx, snapSize.value);
+      nw = snapToGrid(nw, snapSize.value);
     }
 
     if (nw < MIN) nw = MIN;
@@ -585,23 +664,42 @@ function onPointerUp(event: PointerEvent) {
     return;
   }
 
-  if (drag.type === 'pan' || drag.type === 'clickPending') { drag = { type: 'none' }; svgRef.value?.releasePointerCapture(event.pointerId); return; }
+  if (drag.type === 'pan' || drag.type === 'clickPending') {
+    drag = { type: 'none' };
+    svgRef.value?.releasePointerCapture(event.pointerId);
+    return;
+  }
 
   if (drag.type === 'drawing') {
     const pc = sc(event.clientX, event.clientY);
     for (const n of props.nodes) {
       if (n.id === drag.sourceNodeId) continue;
       const a = findAnchorNearPoint(n.id, pc.x, pc.y);
-      if (a) { emit('anchorMouseUp', n.id, a); drag = { type: 'none' }; hoveredNodeId.value = null; hoveredAnchor.value = null; svgRef.value?.releasePointerCapture(event.pointerId); return; }
+      if (a) {
+        emit('anchorMouseUp', n.id, a);
+        drag = { type: 'none' };
+        hoveredNodeId.value = null;
+        hoveredAnchor.value = null;
+        svgRef.value?.releasePointerCapture(event.pointerId);
+        return;
+      }
     }
-    emit('drawingCancel'); drag = { type: 'none' }; hoveredNodeId.value = null; hoveredAnchor.value = null; svgRef.value?.releasePointerCapture(event.pointerId); return;
+    emit('drawingCancel');
+    drag = { type: 'none' };
+    hoveredNodeId.value = null;
+    hoveredAnchor.value = null;
+    svgRef.value?.releasePointerCapture(event.pointerId);
+    return;
   }
 
   drag = { type: 'none' };
   svgRef.value?.releasePointerCapture(event.pointerId);
 }
 
-function onWheel(event: WheelEvent) { const r = wrapperRef.value?.getBoundingClientRect(); if (r) emit('canvasWheel', event, r); }
+function onWheel(event: WheelEvent) {
+  const r = wrapperRef.value?.getBoundingClientRect();
+  if (r) emit('canvasWheel', event, r);
+}
 function onDrop(event: DragEvent) {
   const nt = event.dataTransfer?.getData('application/x-flowchart-node-type') as NodeType | undefined;
   if (!nt) return;

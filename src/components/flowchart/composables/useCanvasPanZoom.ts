@@ -10,8 +10,12 @@ export function useCanvasPanZoom(nodesRef: Ref<FlowchartNode[]>) {
   const viewport = ref<CanvasViewport>({ panX: 0, panY: 0, zoom: 1 });
 
   function applyPanClamp(zoom: number, containerWidth: number, containerHeight: number) {
-    let ns: FlowchartNode[] = [];
-    try { ns = unref(nodesRef) ?? []; } catch { return; }
+    let ns: FlowchartNode[];
+    try {
+      ns = unref(nodesRef) ?? [];
+    } catch {
+      return;
+    }
 
     if (ns.length === 0) return;
 
@@ -70,7 +74,9 @@ export function useCanvasPanZoom(nodesRef: Ref<FlowchartNode[]>) {
     applyPanClamp(newZoom, containerRect.width, containerRect.height);
   }
 
-  function resetView() { viewport.value = { panX: 0, panY: 0, zoom: 1 }; }
+  function resetView() {
+  viewport.value = { panX: 0, panY: 0, zoom: 1 };
+}
 
   function clampPan(containerWidth: number, containerHeight: number) {
     applyPanClamp(viewport.value.zoom, containerWidth, containerHeight);

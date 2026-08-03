@@ -132,7 +132,11 @@ const showRightArrow = ref(false);
 
 function checkArrows() {
   const el = scrollRef.value;
-  if (!el) { showLeftArrow.value = false; showRightArrow.value = false; return; }
+  if (!el) {
+    showLeftArrow.value = false;
+    showRightArrow.value = false;
+    return;
+  }
   showLeftArrow.value = el.scrollLeft > 1;
   showRightArrow.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
 }
@@ -161,7 +165,10 @@ watch(() => props.visible, async (v) => {
   } else {
     const el = scrollRef.value;
     if (el) el.removeEventListener('scroll', checkArrows);
-    if (observer) { observer.disconnect(); observer = null; }
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
   }
 });
 </script>
