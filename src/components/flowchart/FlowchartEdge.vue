@@ -95,11 +95,15 @@ const targetPoint = computed(() => getAnchorPoint(props.targetNode, props.edge.t
 
 const pathD = computed(() => {
   const excludeIds = [props.edge.sourceNodeId, props.edge.targetNodeId]
+  const srcRect = { x: props.sourceNode.x, y: props.sourceNode.y, width: props.sourceNode.width, height: props.sourceNode.height }
+  const tgtRect = { x: props.targetNode.x, y: props.targetNode.y, width: props.targetNode.width, height: props.targetNode.height }
   const waypoints = computeOrthogonalWaypoints(
     sourcePoint.value, props.edge.sourceAnchor,
     targetPoint.value, props.edge.targetAnchor,
     props.allNodes,
     excludeIds,
+    srcRect,
+    tgtRect,
   )
   return buildRoundedPath(waypoints, cornerRadius.value)
 })
