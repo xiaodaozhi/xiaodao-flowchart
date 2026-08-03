@@ -240,6 +240,20 @@ function sameSide(paths: Point[], p1: Point, pN: Point, anchor: AnchorPosition, 
 
 function bothH(paths: Point[], p1: Point, pN: Point, srcDir: Point, z: ZonePair) {
   const back = (srcDir.x > 0 && pN.x < p1.x) || (srcDir.x < 0 && pN.x > p1.x);
+  if (!back) {
+    const directCorner: Point = { x: p1.x, y: pN.y };
+    if (cornerSafe(directCorner, p1, pN, z)) {
+      paths.push(directCorner);
+      return;
+    }
+
+    const alternateCorner: Point = { x: pN.x, y: p1.y };
+    if (cornerSafe(alternateCorner, p1, pN, z)) {
+      paths.push(alternateCorner);
+      return;
+    }
+  }
+
   const crossY = safeCrossCoord('y', p1.y, pN.y, z);
   if (back) {
     const extX = p1.x + srcDir.x * EXIT_MARGIN;
@@ -255,6 +269,20 @@ function bothH(paths: Point[], p1: Point, pN: Point, srcDir: Point, z: ZonePair)
 
 function bothV(paths: Point[], p1: Point, pN: Point, srcDir: Point, z: ZonePair) {
   const back = (srcDir.y > 0 && pN.y < p1.y) || (srcDir.y < 0 && pN.y > p1.y);
+  if (!back) {
+    const directCorner: Point = { x: pN.x, y: p1.y };
+    if (cornerSafe(directCorner, p1, pN, z)) {
+      paths.push(directCorner);
+      return;
+    }
+
+    const alternateCorner: Point = { x: p1.x, y: pN.y };
+    if (cornerSafe(alternateCorner, p1, pN, z)) {
+      paths.push(alternateCorner);
+      return;
+    }
+  }
+
   const crossX = safeCrossCoord('x', p1.x, pN.x, z);
   if (back) {
     const extY = p1.y + srcDir.y * EXIT_MARGIN;
