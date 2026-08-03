@@ -8,8 +8,10 @@
     <!-- Rectangle -->
     <rect
       v-if="node.type === 'rectangle'"
-      :x="node.x" :y="node.y"
-      :width="node.width" :height="node.height"
+      :x="node.x"
+      :y="node.y"
+      :width="node.width"
+      :height="node.height"
       :rx="node.style?.borderRadius ?? 4"
       :fill="resolvedBgColor"
       :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
@@ -30,8 +32,10 @@
     <!-- Ellipse -->
     <ellipse
       v-if="node.type === 'ellipse'"
-      :cx="cx" :cy="cy"
-      :rx="node.width / 2" :ry="node.height / 2"
+      :cx="cx"
+      :cy="cy"
+      :rx="node.width / 2"
+      :ry="node.height / 2"
       :fill="resolvedBgColor"
       :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
       :stroke-width="node.style?.borderWidth ?? 2"
@@ -51,8 +55,10 @@
     <!-- Text node -->
     <g v-if="node.type === 'text'">
       <rect
-        :x="node.x" :y="node.y"
-        :width="node.width" :height="node.height"
+        :x="node.x"
+        :y="node.y"
+        :width="node.width"
+        :height="node.height"
         :fill="isSelected ? 'var(--fc-text-node-selected-fill)' : 'var(--fc-text-node-fill)'"
         :stroke="isSelected ? 'var(--fc-text-node-selected-stroke)' : 'var(--fc-text-node-stroke)'"
         :stroke-width="1"
@@ -87,7 +93,9 @@
           userSelect: 'none',
           overflow: 'hidden',
         }"
-      >{{ node.label }}</div>
+      >
+        {{ node.label }}
+      </div>
     </foreignObject>
 
     <!-- Anchor points -->
@@ -109,58 +117,58 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import './style/theme.css'
-import type { FlowchartNode, AnchorPosition, CanvasViewport } from './types/index.ts'
-import { useFlowchartContext } from './composables/useFlowchartContext.ts'
-import { contrastColor } from './utils/colorUtils'
-import AnchorPoints from './AnchorPoints.vue'
-import ResizeHandles from './ResizeHandles.vue'
+import { computed } from 'vue';
+import './style/theme.css';
+import type { FlowchartNode, AnchorPosition, CanvasViewport } from './types/index.ts';
+import { useFlowchartContext } from './composables/useFlowchartContext.ts';
+import { contrastColor } from './utils/colorUtils';
+import AnchorPoints from './AnchorPoints.vue';
+import ResizeHandles from './ResizeHandles.vue';
 
 const props = defineProps<{
-  node: FlowchartNode
-  isSelected: boolean
-  viewport: CanvasViewport
-  isEditing: boolean
-  showAnchors: boolean
-  hoveredAnchor?: AnchorPosition | null
-  hoveredNodeId?: string | null
-}>()
+  node: FlowchartNode;
+  isSelected: boolean;
+  viewport: CanvasViewport;
+  isEditing: boolean;
+  showAnchors: boolean;
+  hoveredAnchor?: AnchorPosition | null;
+  hoveredNodeId?: string | null;
+}>();
 
 defineEmits<{
-  dblClick: [nodeId: string]
-}>()
+  dblClick: [nodeId: string];
+}>();
 
-const { theme: currentTheme } = useFlowchartContext()
+const { theme: currentTheme } = useFlowchartContext();
 
-const lightDefaultFill = '#fff'
-const darkDefaultFill = '#3a3a3a'
+const lightDefaultFill = '#fff';
+const darkDefaultFill = '#3a3a3a';
 
 const resolvedBgColor = computed(() => {
-  if (props.node.style?.backgroundColor) return props.node.style.backgroundColor
-  return currentTheme === 'dark' ? darkDefaultFill : lightDefaultFill
-})
+  if (props.node.style?.backgroundColor) return props.node.style.backgroundColor;
+  return currentTheme === 'dark' ? darkDefaultFill : lightDefaultFill;
+});
 
 const resolvedTextColor = computed(() => {
-  if (props.node.style?.textColor) return props.node.style.textColor
-  return contrastColor(resolvedBgColor.value)
-})
+  if (props.node.style?.textColor) return props.node.style.textColor;
+  return contrastColor(resolvedBgColor.value);
+});
 
-const skew = computed(() => Math.min(15, props.node.width * 0.15))
-const cx = computed(() => props.node.x + props.node.width / 2)
-const cy = computed(() => props.node.y + props.node.height / 2)
-const pad = computed(() => props.node.type === 'text' ? 4 : 8)
+const skew = computed(() => Math.min(15, props.node.width * 0.15));
+const cx = computed(() => props.node.x + props.node.width / 2);
+const cy = computed(() => props.node.y + props.node.height / 2);
+const pad = computed(() => props.node.type === 'text' ? 4 : 8);
 
 const diamondPoints = computed(() => {
-  const { x, y, width, height } = props.node
-  return `${x + width / 2},${y} ${x + width},${y + height / 2} ${x + width / 2},${y + height} ${x},${y + height / 2}`
-})
+  const { x, y, width, height } = props.node;
+  return `${x + width / 2},${y} ${x + width},${y + height / 2} ${x + width / 2},${y + height} ${x},${y + height / 2}`;
+});
 
 const parallelogramPoints = computed(() => {
-  const { x, y, width, height } = props.node
-  const s = skew.value
-  return `${x + s},${y} ${x + width},${y} ${x + width - s},${y + height} ${x},${y + height}`
-})
+  const { x, y, width, height } = props.node;
+  const s = skew.value;
+  return `${x + s},${y} ${x + width},${y} ${x + width - s},${y + height} ${x},${y + height}`;
+});
 </script>
 
 <style scoped>

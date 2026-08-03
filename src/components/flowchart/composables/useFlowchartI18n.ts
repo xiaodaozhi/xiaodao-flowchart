@@ -1,49 +1,49 @@
-import type { Locale } from '../types'
-import { PRESET_COLOR_NAMES, EDGE_COLOR_NAMES } from '.././utils/colorUtils'
+import type { Locale } from '../types';
+import { PRESET_COLOR_NAMES, EDGE_COLOR_NAMES } from '.././utils/colorUtils';
 
-type I18nKey =
-  | 'sidebar.title'
-  | 'node.defaultColor'
-  | 'node.delete'
-  | 'edge.defaultColor'
-  | 'edge.delete'
-  | 'template.rectangle'
-  | 'template.diamond'
-  | 'template.ellipse'
-  | 'template.parallelogram'
-  | 'template.text'
-  | 'color.white'
-  | 'color.lightPink'
-  | 'color.lightPurple'
-  | 'color.lavender'
-  | 'color.periwinkle'
-  | 'color.lightBlue'
-  | 'color.lightCyan'
-  | 'color.lightTeal'
-  | 'color.lightGreen'
-  | 'color.lightLime'
-  | 'color.lightYellow'
-  | 'color.lightAmber'
-  | 'color.lightOrange'
-  | 'color.lightRed'
-  | 'color.lightBrown'
-  | 'color.lightBlueGrey'
-  | 'color.lightGrey'
-  | 'color.blueGrey'
-  | 'color.darkGrey'
-  | 'color.red'
-  | 'color.blue'
-  | 'color.green'
-  | 'color.orange'
-  | 'color.purple'
-  | 'color.cyan'
-  | 'color.brown'
-  | 'color.darkBlue'
-  | 'color.darkRed'
-  | 'color.darkGreen'
-  | 'color.darkOrange'
-  | 'color.darkPurple'
-  | 'color.amber'
+type I18nKey
+  = | 'sidebar.title'
+    | 'node.defaultColor'
+    | 'node.delete'
+    | 'edge.defaultColor'
+    | 'edge.delete'
+    | 'template.rectangle'
+    | 'template.diamond'
+    | 'template.ellipse'
+    | 'template.parallelogram'
+    | 'template.text'
+    | 'color.white'
+    | 'color.lightPink'
+    | 'color.lightPurple'
+    | 'color.lavender'
+    | 'color.periwinkle'
+    | 'color.lightBlue'
+    | 'color.lightCyan'
+    | 'color.lightTeal'
+    | 'color.lightGreen'
+    | 'color.lightLime'
+    | 'color.lightYellow'
+    | 'color.lightAmber'
+    | 'color.lightOrange'
+    | 'color.lightRed'
+    | 'color.lightBrown'
+    | 'color.lightBlueGrey'
+    | 'color.lightGrey'
+    | 'color.blueGrey'
+    | 'color.darkGrey'
+    | 'color.red'
+    | 'color.blue'
+    | 'color.green'
+    | 'color.orange'
+    | 'color.purple'
+    | 'color.cyan'
+    | 'color.brown'
+    | 'color.darkBlue'
+    | 'color.darkRed'
+    | 'color.darkGreen'
+    | 'color.darkOrange'
+    | 'color.darkPurple'
+    | 'color.amber';
 
 const messages: Record<Locale, Record<I18nKey, string>> = {
   'zh-CN': {
@@ -134,18 +134,17 @@ const messages: Record<Locale, Record<I18nKey, string>> = {
     'color.darkOrange': 'Dark Orange',
     'color.darkPurple': 'Dark Purple',
   },
-}
+};
 
 export function createI18n(locale: Locale) {
   return {
     t(key: I18nKey): string {
-      return messages[locale]?.[key] ?? key
+      return messages[locale]?.[key] ?? key;
     },
     colorName(hex: string, isDefault: boolean): string {
-      if (isDefault) return this.t('node.defaultColor')
-      const key = PRESET_COLOR_NAMES[hex] ?? EDGE_COLOR_NAMES[hex]
-      return key ? messages[locale]?.[key as I18nKey] ?? hex : hex
+      if (isDefault) return this.t('node.defaultColor');
+      const key = PRESET_COLOR_NAMES[hex] ?? EDGE_COLOR_NAMES[hex];
+      return key ? messages[locale]?.[key as I18nKey] ?? hex : hex;
     },
-  }
+  };
 }
-

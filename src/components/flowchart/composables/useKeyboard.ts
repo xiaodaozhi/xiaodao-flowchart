@@ -1,18 +1,18 @@
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue';
 
 export function useKeyboard(handlers: Record<string, (e: KeyboardEvent) => void>) {
   function onKeyDown(e: KeyboardEvent) {
-    const handler = handlers[e.key]
+    const handler = handlers[e.key];
     if (handler) {
-      handler(e)
+      handler(e);
     }
   }
 
   onMounted(() => {
-    window.addEventListener('keydown', onKeyDown)
-  })
+    window.addEventListener('keydown', onKeyDown);
+  });
 
   onUnmounted(() => {
-    window.removeEventListener('keydown', onKeyDown)
-  })
+    window.removeEventListener('keydown', onKeyDown);
+  });
 }

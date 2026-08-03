@@ -1,4 +1,4 @@
-export { default as FlowchartContainer } from './FlowchartContainer.vue'
+export { default as FlowchartContainer } from './FlowchartContainer.vue';
 export type {
   FlowchartData,
   FlowchartNode,
@@ -10,4 +10,4 @@ export type {
   SidebarNodeTemplate,
   Theme,
   Locale,
-} from './types/index.ts'
+} from './types/index.ts';

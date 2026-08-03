@@ -41,39 +41,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import './style/theme.css'
-import type { FlowchartEdge, FlowchartNode } from './types'
-import { getAnchorPoint } from './utils/anchorUtils'
-import { computeOrthogonalWaypoints, buildRoundedPath } from './utils/edgeRouting'
-import { midpoint } from './utils/geometry'
+import { computed } from 'vue';
+import './style/theme.css';
+import type { FlowchartEdge, FlowchartNode } from './types';
+import { getAnchorPoint } from './utils/anchorUtils';
+import { computeOrthogonalWaypoints, buildRoundedPath } from './utils/edgeRouting';
+import { midpoint } from './utils/geometry';
 
-import type { NodeRect } from './utils/edgeRouting'
+import type { NodeRect } from './utils/edgeRouting';
 
 const props = defineProps<{
-  edge: FlowchartEdge
-  sourceNode: FlowchartNode
-  targetNode: FlowchartNode
-  isSelected: boolean
-  allNodes?: NodeRect[]
-}>()
+  edge: FlowchartEdge;
+  sourceNode: FlowchartNode;
+  targetNode: FlowchartNode;
+  isSelected: boolean;
+  allNodes?: NodeRect[];
+}>();
 
 defineEmits<{
-  click: [edgeId: string]
-  dblClick: [edgeId: string]
-}>()
+  click: [edgeId: string];
+  dblClick: [edgeId: string];
+}>();
 
-const cornerRadius = computed(() => props.edge.style?.cornerRadius ?? 8)
-const strokeWidth = computed(() => props.edge.style?.strokeWidth ?? 2)
-const hitWidth = computed(() => Math.max(strokeWidth.value + 8, 14))
+const cornerRadius = computed(() => props.edge.style?.cornerRadius ?? 8);
+const strokeWidth = computed(() => props.edge.style?.strokeWidth ?? 2);
+const hitWidth = computed(() => Math.max(strokeWidth.value + 8, 14));
 
-const sourcePoint = computed(() => getAnchorPoint(props.sourceNode, props.edge.sourceAnchor))
-const targetPoint = computed(() => getAnchorPoint(props.targetNode, props.edge.targetAnchor))
+const sourcePoint = computed(() => getAnchorPoint(props.sourceNode, props.edge.sourceAnchor));
+const targetPoint = computed(() => getAnchorPoint(props.targetNode, props.edge.targetAnchor));
 
 const pathD = computed(() => {
-  const excludeIds = [props.edge.sourceNodeId, props.edge.targetNodeId]
-  const srcRect = { x: props.sourceNode.x, y: props.sourceNode.y, width: props.sourceNode.width, height: props.sourceNode.height }
-  const tgtRect = { x: props.targetNode.x, y: props.targetNode.y, width: props.targetNode.width, height: props.targetNode.height }
+  const excludeIds = [props.edge.sourceNodeId, props.edge.targetNodeId];
+  const srcRect = { x: props.sourceNode.x, y: props.sourceNode.y, width: props.sourceNode.width, height: props.sourceNode.height };
+  const tgtRect = { x: props.targetNode.x, y: props.targetNode.y, width: props.targetNode.width, height: props.targetNode.height };
   const waypoints = computeOrthogonalWaypoints(
     sourcePoint.value, props.edge.sourceAnchor,
     targetPoint.value, props.edge.targetAnchor,
@@ -81,13 +81,13 @@ const pathD = computed(() => {
     excludeIds,
     srcRect,
     tgtRect,
-  )
-  return buildRoundedPath(waypoints, cornerRadius.value)
-})
+  );
+  return buildRoundedPath(waypoints, cornerRadius.value);
+});
 
 const labelPoint = computed(() => {
-  return midpoint(sourcePoint.value, targetPoint.value)
-})
+  return midpoint(sourcePoint.value, targetPoint.value);
+});
 </script>
 
 <style scoped>

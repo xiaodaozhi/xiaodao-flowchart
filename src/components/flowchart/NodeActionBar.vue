@@ -1,26 +1,43 @@
 <template>
   <Transition name="bar">
-    <div v-if="visible" class="node-action-bar">
-      <div class="bar-inner" ref="barRef">
+    <div
+      v-if="visible"
+      class="node-action-bar"
+    >
+      <div
+        ref="barRef"
+        class="bar-inner"
+      >
         <!-- Left scroll arrow -->
         <button
           class="scroll-arrow scroll-left"
           :class="{ invisible: !showLeftArrow }"
           @click="scrollColors(-1)"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
 
         <!-- Scrollable color row -->
-        <div class="color-scroll" ref="scrollRef">
+        <div
+          ref="scrollRef"
+          class="color-scroll"
+        >
           <div class="color-row">
             <button
               v-for="c in colors"
               :key="c"
               class="color-btn"
-              :class="{ active: c === activeColor, 'is-default': c === defaultColor }"
+              :class="{ 'active': c === activeColor, 'is-default': c === defaultColor }"
               :style="{ backgroundColor: c }"
               :title="c === defaultColor ? i18n.colorName(c, true) : i18n.colorName(c, false)"
               @click="$emit('pickColor', c)"
@@ -36,17 +53,37 @@
           :class="{ invisible: !showRightArrow }"
           @click="scrollColors(1)"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
 
         <!-- Separator -->
-        <div class="separator"></div>
+        <div class="separator" />
 
         <!-- Delete button -->
-        <button class="delete-btn" :title="i18n.t('node.delete')" @click="$emit('delete')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <button
+          class="delete-btn"
+          :title="i18n.t('node.delete')"
+          @click="$emit('delete')"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
             <path d="M10 11v6" />
@@ -60,73 +97,73 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, nextTick } from 'vue'
-import './style/theme.css'
-import { PRESET_COLORS, DEFAULT_COLOR } from './utils/colorUtils'
-import { useFlowchartContext } from './composables/useFlowchartContext'
-import { createI18n } from './composables/useFlowchartI18n'
+import { computed, ref, watch, nextTick } from 'vue';
+import './style/theme.css';
+import { PRESET_COLORS, DEFAULT_COLOR } from './utils/colorUtils';
+import { useFlowchartContext } from './composables/useFlowchartContext';
+import { createI18n } from './composables/useFlowchartI18n';
 
 const props = defineProps<{
-  visible: boolean
-  currentColor: string
-}>()
+  visible: boolean;
+  currentColor: string;
+}>();
 
 defineEmits<{
-  pickColor: [color: string]
-  delete: []
-}>()
+  pickColor: [color: string];
+  delete: [];
+}>();
 
-const { locale } = useFlowchartContext()
-const i18n = computed(() => createI18n(locale))
+const { locale } = useFlowchartContext();
+const i18n = computed(() => createI18n(locale));
 
-const colors = PRESET_COLORS
-const defaultColor = DEFAULT_COLOR
+const colors = PRESET_COLORS;
+const defaultColor = DEFAULT_COLOR;
 
 const activeColor = computed(() => {
-  const c = props.currentColor
-  if (!c || c === defaultColor) return defaultColor
-  return c
-})
+  const c = props.currentColor;
+  if (!c || c === defaultColor) return defaultColor;
+  return c;
+});
 
-const scrollRef = ref<HTMLElement | null>(null)
-const barRef = ref<HTMLElement | null>(null)
-const showLeftArrow = ref(false)
-const showRightArrow = ref(false)
+const scrollRef = ref<HTMLElement | null>(null);
+const barRef = ref<HTMLElement | null>(null);
+const showLeftArrow = ref(false);
+const showRightArrow = ref(false);
 
 function checkArrows() {
-  const el = scrollRef.value
-  if (!el) { showLeftArrow.value = false; showRightArrow.value = false; return }
-  showLeftArrow.value = el.scrollLeft > 1
-  showRightArrow.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 1
+  const el = scrollRef.value;
+  if (!el) { showLeftArrow.value = false; showRightArrow.value = false; return; }
+  showLeftArrow.value = el.scrollLeft > 1;
+  showRightArrow.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
 }
 
 function scrollColors(dir: number) {
-  const el = scrollRef.value
-  if (!el) return
-  el.scrollBy({ left: el.clientWidth * 0.8 * dir, behavior: 'smooth' })
+  const el = scrollRef.value;
+  if (!el) return;
+  el.scrollBy({ left: el.clientWidth * 0.8 * dir, behavior: 'smooth' });
 }
 
 // Use ResizeObserver + scroll listener for robust arrow detection
-let observer: ResizeObserver | null = null
+let observer: ResizeObserver | null = null;
 
 watch(() => props.visible, async (v) => {
   if (v) {
-    await nextTick()
-    checkArrows()
-    const el = scrollRef.value
+    await nextTick();
+    checkArrows();
+    const el = scrollRef.value;
     if (el) {
-      el.addEventListener('scroll', checkArrows, { passive: true })
-      observer = new ResizeObserver(checkArrows)
-      observer.observe(el)
+      el.addEventListener('scroll', checkArrows, { passive: true });
+      observer = new ResizeObserver(checkArrows);
+      observer.observe(el);
       // Also observe bar to catch initial render
-      if (barRef.value) observer.observe(barRef.value)
+      if (barRef.value) observer.observe(barRef.value);
     }
   } else {
-    const el = scrollRef.value
-    if (el) el.removeEventListener('scroll', checkArrows)
-    if (observer) { observer.disconnect(); observer = null }
+    const el = scrollRef.value;
+    if (el) el.removeEventListener('scroll', checkArrows);
+    if (observer) { observer.disconnect(); observer = null; }
   }
-})
+});
 </script>
 
 <style scoped>
@@ -221,7 +258,6 @@ watch(() => props.visible, async (v) => {
   background: transparent !important;
 }
 
-
 .separator {
   width: 1px;
   height: 24px;
@@ -260,4 +296,3 @@ watch(() => props.visible, async (v) => {
   transform: translateY(8px);
 }
 </style>
-

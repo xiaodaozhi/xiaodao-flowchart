@@ -1,5 +1,5 @@
-import { ref } from 'vue'
-import type { EdgeDrawingState, AnchorPosition } from '../types'
+import { ref } from 'vue';
+import type { EdgeDrawingState, AnchorPosition } from '../types';
 
 export function useEdgeDrawing(
   addEdge: (
@@ -9,7 +9,7 @@ export function useEdgeDrawing(
     targetAnchor: AnchorPosition,
   ) => string | null,
 ) {
-  const drawingState = ref<EdgeDrawingState | null>(null)
+  const drawingState = ref<EdgeDrawingState | null>(null);
 
   function startDrawing(sourceNodeId: string, sourceAnchor: AnchorPosition, mouseX: number, mouseY: number) {
     drawingState.value = {
@@ -18,23 +18,23 @@ export function useEdgeDrawing(
       sourceAnchor,
       currentMouseX: mouseX,
       currentMouseY: mouseY,
-    }
+    };
   }
 
   function updateDrawing(mouseX: number, mouseY: number) {
     if (drawingState.value) {
-      drawingState.value.currentMouseX = mouseX
-      drawingState.value.currentMouseY = mouseY
+      drawingState.value.currentMouseX = mouseX;
+      drawingState.value.currentMouseY = mouseY;
     }
   }
 
   function finishDrawing(targetNodeId: string, targetAnchor: AnchorPosition): string | null {
-    if (!drawingState.value) return null
+    if (!drawingState.value) return null;
 
     // Prevent self-connection
     if (drawingState.value.sourceNodeId === targetNodeId) {
-      cancelDrawing()
-      return null
+      cancelDrawing();
+      return null;
     }
 
     const edgeId = addEdge(
@@ -42,17 +42,17 @@ export function useEdgeDrawing(
       drawingState.value.sourceAnchor,
       targetNodeId,
       targetAnchor,
-    )
-    cancelDrawing()
-    return edgeId
+    );
+    cancelDrawing();
+    return edgeId;
   }
 
   function cancelDrawing() {
-    drawingState.value = null
+    drawingState.value = null;
   }
 
   function isDrawing(): boolean {
-    return drawingState.value?.active ?? false
+    return drawingState.value?.active ?? false;
   }
 
   return {
@@ -62,5 +62,5 @@ export function useEdgeDrawing(
     finishDrawing,
     cancelDrawing,
     isDrawing,
-  }
+  };
 }

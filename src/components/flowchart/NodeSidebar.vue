@@ -1,6 +1,14 @@
 <template>
-  <div class="node-sidebar" :class="{ 'sidebar-collapsed': isMobile }">
-    <div class="sidebar-title" v-if="!isMobile">{{ sidebarTitle }}</div>
+  <div
+    class="node-sidebar"
+    :class="{ 'sidebar-collapsed': isMobile }"
+  >
+    <div
+      v-if="!isMobile"
+      class="sidebar-title"
+    >
+      {{ sidebarTitle }}
+    </div>
     <div
       v-for="template in templates"
       :key="template.type"
@@ -8,64 +16,103 @@
       draggable="true"
       @dragstart="onDragStart($event, template.type)"
     >
-      <svg :width="32" :height="24" class="sidebar-icon">
+      <svg
+        :width="32"
+        :height="24"
+        class="sidebar-icon"
+      >
         <!-- Rectangle -->
         <rect
           v-if="template.type === 'rectangle'"
-          x="2" y="2" width="28" height="20" rx="3"
-          fill="var(--fc-sidebar-icon-fill)" stroke="var(--fc-sidebar-icon-stroke)" stroke-width="1.5"
+          x="2"
+          y="2"
+          width="28"
+          height="20"
+          rx="3"
+          fill="var(--fc-sidebar-icon-fill)"
+          stroke="var(--fc-sidebar-icon-stroke)"
+          stroke-width="1.5"
         />
         <!-- Diamond -->
         <polygon
           v-if="template.type === 'diamond'"
           :points="`16,1 30,12 16,23 2,12`"
-          fill="var(--fc-sidebar-icon-fill)" stroke="var(--fc-sidebar-icon-stroke)" stroke-width="1.5"
+          fill="var(--fc-sidebar-icon-fill)"
+          stroke="var(--fc-sidebar-icon-stroke)"
+          stroke-width="1.5"
         />
         <!-- Ellipse -->
         <ellipse
           v-if="template.type === 'ellipse'"
-          cx="16" cy="12" rx="14" ry="10"
-          fill="var(--fc-sidebar-icon-fill)" stroke="var(--fc-sidebar-icon-stroke)" stroke-width="1.5"
+          cx="16"
+          cy="12"
+          rx="14"
+          ry="10"
+          fill="var(--fc-sidebar-icon-fill)"
+          stroke="var(--fc-sidebar-icon-stroke)"
+          stroke-width="1.5"
         />
         <!-- Parallelogram -->
         <polygon
           v-if="template.type === 'parallelogram'"
           points="6,2 30,2 26,22 2,22"
-          fill="var(--fc-sidebar-icon-fill)" stroke="var(--fc-sidebar-icon-stroke)" stroke-width="1.5"
+          fill="var(--fc-sidebar-icon-fill)"
+          stroke="var(--fc-sidebar-icon-stroke)"
+          stroke-width="1.5"
         />
         <!-- Text -->
         <g v-if="template.type === 'text'">
-          <rect x="2" y="3" width="28" height="18" rx="2" fill="var(--fc-sidebar-icon-fill)" stroke="var(--fc-sidebar-icon-stroke)" stroke-width="1.5" stroke-dasharray="3,2" />
-          <text x="16" y="15" text-anchor="middle" font-size="12" fill="var(--fc-sidebar-icon-stroke)" font-weight="bold" font-family="serif">T</text>
+          <rect
+            x="2"
+            y="3"
+            width="28"
+            height="18"
+            rx="2"
+            fill="var(--fc-sidebar-icon-fill)"
+            stroke="var(--fc-sidebar-icon-stroke)"
+            stroke-width="1.5"
+            stroke-dasharray="3,2"
+          />
+          <text
+            x="16"
+            y="15"
+            text-anchor="middle"
+            font-size="12"
+            fill="var(--fc-sidebar-icon-stroke)"
+            font-weight="bold"
+            font-family="serif"
+          >T</text>
         </g>
       </svg>
-      <span class="sidebar-label" v-if="!isMobile">{{ template.label }}</span>
+      <span
+        v-if="!isMobile"
+        class="sidebar-label"
+      >{{ template.label }}</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import './style/theme.css'
-import type { NodeType, SidebarNodeTemplate } from './types'
-import { inject } from 'vue'
-import { localeKey, mobileKey } from './composables/useFlowchartContext'
-import { createI18n } from './composables/useFlowchartI18n'
+import { computed, inject  } from 'vue';
+import './style/theme.css';
+import type { NodeType, SidebarNodeTemplate } from './types';
+import { localeKey, mobileKey } from './composables/useFlowchartContext';
+import { createI18n } from './composables/useFlowchartI18n';
 
 defineProps<{
-  templates: SidebarNodeTemplate[]
-}>()
+  templates: SidebarNodeTemplate[];
+}>();
 
-const locale = inject(localeKey)
-const mobile = inject(mobileKey)
+const locale = inject(localeKey);
+const mobile = inject(mobileKey);
 
-const isMobile = computed(() => mobile?.value ?? false)
-const i18n = computed(() => createI18n(locale?.value ?? 'zh-CN'))
-const sidebarTitle = computed(() => i18n.value.t('sidebar.title'))
+const isMobile = computed(() => mobile?.value ?? false);
+const i18n = computed(() => createI18n(locale?.value ?? 'zh-CN'));
+const sidebarTitle = computed(() => i18n.value.t('sidebar.title'));
 
 function onDragStart(event: DragEvent, type: NodeType) {
-  event.dataTransfer?.setData('application/x-flowchart-node-type', type)
-  event.dataTransfer!.effectAllowed = 'copy'
+  event.dataTransfer?.setData('application/x-flowchart-node-type', type);
+  event.dataTransfer!.effectAllowed = 'copy';
 }
 </script>
 
@@ -132,4 +179,3 @@ function onDragStart(event: DragEvent, type: NodeType) {
   white-space: nowrap;
 }
 </style>
-

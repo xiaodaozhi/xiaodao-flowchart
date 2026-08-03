@@ -1,5 +1,8 @@
 <template>
-  <g v-if="visible" class="anchor-points">
+  <g
+    v-if="visible"
+    class="anchor-points"
+  >
     <circle
       v-for="anchor in anchors"
       :key="anchor.position"
@@ -16,27 +19,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { FlowchartNode, AnchorPosition, CanvasViewport } from './types'
-import { getAnchorDisplayPoint } from './utils/anchorUtils'
+import { computed } from 'vue';
+import type { FlowchartNode, AnchorPosition, CanvasViewport } from './types';
+import { getAnchorDisplayPoint } from './utils/anchorUtils';
 
 const props = defineProps<{
-  node: FlowchartNode
-  visible: boolean
-  viewport: CanvasViewport
-  hoveredAnchor?: AnchorPosition | null
-  hoveredNodeId?: string | null
-}>()
+  node: FlowchartNode;
+  visible: boolean;
+  viewport: CanvasViewport;
+  hoveredAnchor?: AnchorPosition | null;
+  hoveredNodeId?: string | null;
+}>();
 
-const r = computed(() => Math.max(5 / props.viewport.zoom, 3))
+const r = computed(() => Math.max(5 / props.viewport.zoom, 3));
 
 const anchors = computed(() => {
-  const positions = ['top', 'right', 'bottom', 'left'] as const
-  return positions.map(pos => ({ position: pos, ...getAnchorDisplayPoint(props.node, pos) }))
-})
+  const positions = ['top', 'right', 'bottom', 'left'] as const;
+  return positions.map((pos) => ({ position: pos, ...getAnchorDisplayPoint(props.node, pos) }));
+});
 
 function isHighlighted(pos: AnchorPosition): boolean {
-  return props.hoveredNodeId === props.node.id && props.hoveredAnchor === pos
+  return props.hoveredNodeId === props.node.id && props.hoveredAnchor === pos;
 }
 </script>
-

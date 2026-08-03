@@ -18,25 +18,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { FlowchartNode, CanvasViewport, ResizeHandleId } from './types'
+import { computed } from 'vue';
+import type { FlowchartNode, CanvasViewport, ResizeHandleId } from './types';
 
 const props = defineProps<{
-  node: FlowchartNode
-  viewport: CanvasViewport
-}>()
+  node: FlowchartNode;
+  viewport: CanvasViewport;
+}>();
 
 interface HandleDef {
-  id: ResizeHandleId
-  x: number
-  y: number
-  cursor: string
+  id: ResizeHandleId;
+  x: number;
+  y: number;
+  cursor: string;
 }
 
-const sz = computed(() => Math.max(8 / props.viewport.zoom, 4))
+const sz = computed(() => Math.max(8 / props.viewport.zoom, 4));
 
 const handles = computed<HandleDef[]>(() => {
-  const { x, y, width, height } = props.node
+  const { x, y, width, height } = props.node;
   return [
     { id: 'top-left',     x,            y,            cursor: 'nwse-resize' },
     { id: 'top-center',   x: x + width / 2, y,            cursor: 'ns-resize' },
@@ -44,9 +44,8 @@ const handles = computed<HandleDef[]>(() => {
     { id: 'middle-left',  x,            y: y + height / 2, cursor: 'ew-resize' },
     { id: 'middle-right', x: x + width, y: y + height / 2, cursor: 'ew-resize' },
     { id: 'bottom-left',  x,            y: y + height, cursor: 'nesw-resize' },
-    { id: 'bottom-center',x: x + width / 2, y: y + height, cursor: 'ns-resize' },
+    { id: 'bottom-center', x: x + width / 2, y: y + height, cursor: 'ns-resize' },
     { id: 'bottom-right', x: x + width, y: y + height, cursor: 'nwse-resize' },
-  ]
-})
+  ];
+});
 </script>
-
