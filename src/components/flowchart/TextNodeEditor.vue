@@ -4,6 +4,7 @@
       v-model="editText"
       class="editor-input"
       :style="inputStyle"
+      :rows="rows"
       @keydown.enter.exact="commit"
       @keydown.escape="() => $emit('cancel')"
       @blur="commit"
@@ -13,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { computed, ref, onMounted, nextTick } from 'vue'
 import type { CanvasViewport } from '../../types'
 
 const props = defineProps<{
@@ -50,6 +51,10 @@ const inputStyle = computed(() => ({
   color: props.color ?? '#000',
 }))
 
+const rows = computed(() => {
+  return Math.max(1, (editText.value.match(/\n/g) || []).length + 1)
+})
+
 function commit() {
   if (editText.value !== props.text) {
     emit('commit', editText.value)
@@ -58,23 +63,10 @@ function commit() {
   }
 }
 
-function autoResize() {
-  const el = inputRef.value
-  if (el) {
-    el.style.height = 'auto'
-    el.style.height = el.scrollHeight + 'px'
-  }
-}
-
-watch(editText, () => {
-  nextTick(autoResize)
-})
-
 onMounted(async () => {
   await nextTick()
   inputRef.value?.focus()
   inputRef.value?.select()
-  autoResize()
 })
 </script>
 
@@ -87,14 +79,15 @@ onMounted(async () => {
 
 .editor-input {
   width: 100%;
-  border: 2px solid #4A90D9;
+  border: 2px solid var(--fc-editor-focus-border);
   border-radius: 2px;
   padding: 4px 8px;
+  display: block;
   outline: none;
   font-family: inherit;
   line-height: 1.4;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--fc-editor-bg);
   text-align: center;
   resize: none;
   overflow: hidden;

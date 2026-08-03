@@ -7,19 +7,19 @@
       <defs>
         <pattern id="mainGrid" :width="gridScreenPx" :height="gridScreenPx"
           patternUnits="userSpaceOnUse" :x="panOffX" :y="panOffY">
-          <circle cx="0" cy="0" r="1.5" fill="#B0B0B0" />
+          <circle cx="0" cy="0" r="1.5" :fill="gridDotStrong" />
         </pattern>
         <pattern id="sub2" :width="gridScreenPx / 2" :height="gridScreenPx / 2"
           patternUnits="userSpaceOnUse" :x="panOffX" :y="panOffY">
-          <circle cx="0" cy="0" r="1.0" fill="#D0D0D0" />
+          <circle cx="0" cy="0" r="1.0" :fill="gridDotWeak" />
         </pattern>
         <pattern id="sub5" :width="gridScreenPx / 5" :height="gridScreenPx / 5"
           patternUnits="userSpaceOnUse" :x="panOffX" :y="panOffY">
-          <circle cx="0" cy="0" r="1.0" fill="#D0D0D0" />
+          <circle cx="0" cy="0" r="1.0" :fill="gridDotWeak" />
         </pattern>
         <pattern id="sub10" :width="gridScreenPx / 10" :height="gridScreenPx / 10"
           patternUnits="userSpaceOnUse" :x="panOffX" :y="panOffY">
-          <circle cx="0" cy="0" r="1.0" fill="#D0D0D0" />
+          <circle cx="0" cy="0" r="1.0" :fill="gridDotWeak" />
         </pattern>
         <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
           <polygon points="0 0, 10 3.5, 0 7" fill="context-stroke" />
@@ -94,9 +94,12 @@ import type { FlowchartNode, FlowchartEdge, CanvasViewport, EdgeDrawingState, An
 import { getAnchorDisplayPoint, getAnchorPoint } from '../../utils/anchorUtils'
 import { computeOrthogonalWaypoints, buildRoundedPath } from '../../utils/edgeRouting'
 import { snapToGrid } from '../../utils/geometry'
+import { useFlowchartContext } from '../../composables/useFlowchartContext'
 import FlowchartEdgeCmp from './FlowchartEdge.vue'
 import FlowchartNodeCmp from './FlowchartNode.vue'
 import TextNodeEditorCmp from './TextNodeEditor.vue'
+
+const { theme: currentTheme } = useFlowchartContext()
 
 const BASE = 15
 
@@ -138,6 +141,10 @@ const snapSize = computed(() => {
   if (z >= 2)  return BASE / 2
   return BASE * gridLevel.value
 })
+
+// Grid dot colors — computed from theme since SVG patterns can't use CSS var()
+const gridDotStrong = computed(() => currentTheme === 'dark' ? '#555' : '#B0B0B0')
+const gridDotWeak = computed(() => currentTheme === 'dark' ? '#444' : '#D0D0D0')
 
 // --- everything below is unchanged from the original ---
 
@@ -469,6 +476,6 @@ function onDrop(event: DragEvent) {
 </script>
 
 <style scoped>
-.canvas-wrapper { flex: 1; overflow: hidden; position: relative; background: #fafafa; }
+.canvas-wrapper { flex: 1; overflow: hidden; position: relative; background: var(--fc-canvas-bg); }
 .flowchart-svg { width: 100%; height: 100%; display: block; }
 </style>

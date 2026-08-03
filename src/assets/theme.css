@@ -1,0 +1,83 @@
+/* ===== Flowchart Component Theme Variables ===== */
+
+/* Light theme (default) */
+.flowchart-container {
+  --fc-canvas-bg: #fafafa;
+  --fc-grid-dot-strong: #B0B0B0;
+  --fc-grid-dot-weak: #D0D0D0;
+
+  --fc-sidebar-bg: #f5f5f5;
+  --fc-sidebar-border: #ddd;
+  --fc-sidebar-title-color: #666;
+  --fc-sidebar-item-hover-bg: #e8e8e8;
+  --fc-sidebar-label-color: #333;
+  --fc-sidebar-icon-fill: #fff;
+  --fc-sidebar-icon-stroke: #333;
+
+  --fc-bar-bg: #fff;
+  --fc-bar-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  --fc-bar-scroll-arrow: #888;
+  --fc-bar-scroll-arrow-hover: #333;
+  --fc-bar-scroll-arrow-hover-bg: #eee;
+  --fc-bar-color-btn-border: #ddd;
+  --fc-bar-color-btn-border-hover: #999;
+  --fc-bar-color-btn-border-active: #333;
+  --fc-bar-separator: #ddd;
+  --fc-bar-delete: #888;
+  --fc-bar-delete-hover: #e53935;
+  --fc-bar-delete-hover-bg: #fce4e4;
+
+  --fc-editor-bg: rgba(255, 255, 255, 0.95);
+  --fc-editor-focus-border: #4A90D9;
+
+  --fc-node-default-fill: #fff;
+  --fc-node-default-stroke: #333;
+  --fc-node-default-text: #000;
+  --fc-text-node-selected-fill: rgba(0, 0, 0, 0.04);
+  --fc-text-node-selected-stroke: #999;
+  --fc-text-node-fill: rgba(0, 0, 0, 0.02);
+  --fc-text-node-stroke: #ccc;
+
+  --fc-edge-label-fill: #666;
+}
+
+/* Dark theme */
+.flowchart-container.theme-dark {
+  --fc-canvas-bg: #1a1a1a;
+  --fc-grid-dot-strong: #555;
+  --fc-grid-dot-weak: #444;
+
+  --fc-sidebar-bg: #2a2a2a;
+  --fc-sidebar-border: #444;
+  --fc-sidebar-title-color: #999;
+  --fc-sidebar-item-hover-bg: #3a3a3a;
+  --fc-sidebar-label-color: #ccc;
+  --fc-sidebar-icon-fill: #2a2a2a;
+  --fc-sidebar-icon-stroke: #ccc;
+
+  --fc-bar-bg: #2d2d2d;
+  --fc-bar-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  --fc-bar-scroll-arrow: #aaa;
+  --fc-bar-scroll-arrow-hover: #fff;
+  --fc-bar-scroll-arrow-hover-bg: #444;
+  --fc-bar-color-btn-border: #555;
+  --fc-bar-color-btn-border-hover: #aaa;
+  --fc-bar-color-btn-border-active: #fff;
+  --fc-bar-separator: #555;
+  --fc-bar-delete: #aaa;
+  --fc-bar-delete-hover: #e53935;
+  --fc-bar-delete-hover-bg: #3a2020;
+
+  --fc-editor-bg: rgba(45, 45, 45, 0.95);
+  --fc-editor-focus-border: #4A90D9;
+
+  --fc-node-default-fill: #3a3a3a;
+  --fc-node-default-stroke: #aaa;
+  --fc-node-default-text: #ddd;
+  --fc-text-node-selected-fill: rgba(255, 255, 255, 0.06);
+  --fc-text-node-selected-stroke: #777;
+  --fc-text-node-fill: rgba(255, 255, 255, 0.03);
+  --fc-text-node-stroke: #555;
+
+  --fc-edge-label-fill: #aaa;
+}

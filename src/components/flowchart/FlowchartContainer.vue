@@ -1,5 +1,5 @@
 <template>
-  <div class="flowchart-container" @drop.prevent @dragover.prevent tabindex="0">
+  <div class="flowchart-container" :class="{ 'theme-dark': resolvedTheme === 'dark' }" @drop.prevent @dragover.prevent tabindex="0">
     <NodeSidebar :templates="templates" />
     <div class="canvas-area">
       <FlowchartCanvas
@@ -47,8 +47,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, toRef, type Ref } from 'vue'
-import type { FlowchartData, AnchorPosition, NodeType } from '../../types'
+import { ref, computed, toRef, type Ref, provide } from 'vue'
+import type { FlowchartData, AnchorPosition, NodeType, Theme, Locale } from '../../types'
 import { GRID_SIZE } from '../../types'
 import { useFlowchartModel } from '../../composables/useFlowchartModel'
 import { useSelection } from '../../composables/useSelection'
@@ -56,6 +56,8 @@ import { useDragFromSidebar } from '../../composables/useDragFromSidebar'
 import { useEdgeDrawing } from '../../composables/useEdgeDrawing'
 import { useCanvasPanZoom } from '../../composables/useCanvasPanZoom'
 import { useKeyboard } from '../../composables/useKeyboard'
+import { themeKey, localeKey, mobileKey } from '../../composables/useFlowchartContext'
+import { createI18n } from '../../composables/useFlowchartI18n'
 import { getAnchorDisplayPoint } from '../../utils/anchorUtils'
 import { contrastColor, DEFAULT_COLOR, EDGE_DEFAULT_COLOR } from '../../utils/colorUtils'
 import NodeSidebar from './NodeSidebar.vue'
@@ -63,7 +65,20 @@ import FlowchartCanvas from './FlowchartCanvas.vue'
 import NodeActionBar from './NodeActionBar.vue'
 import EdgeActionBar from './EdgeActionBar.vue'
 
-const props = defineProps<{ modelValue: FlowchartData }>()
+const props = defineProps<{
+  modelValue: FlowchartData
+  theme?: Theme
+  locale?: Locale
+  mobile?: boolean
+}>()
+
+const resolvedTheme = computed(() => props.theme ?? 'light')
+const resolvedLocale = computed(() => props.locale ?? 'zh-CN')
+const resolvedMobile = computed(() => props.mobile ?? false)
+
+provide(themeKey, resolvedTheme)
+provide(localeKey, resolvedLocale)
+provide(mobileKey, resolvedMobile)
 
 const emit = defineEmits<{
   'update:modelValue': [value: FlowchartData]
@@ -81,7 +96,7 @@ const { internalData } = model
 const selection = useSelection()
 const { selectedNodeId, selectedEdgeId } = selection
 
-const sidebar = useDragFromSidebar(model.addNode)
+const sidebar = useDragFromSidebar(model.addNode, computed(() => createI18n(resolvedLocale.value)))
 const { templates } = sidebar
 
 const panZoom = useCanvasPanZoom(computed(() => internalData.value.nodes))

@@ -1,5 +1,8 @@
 export type NodeType = 'rectangle' | 'diamond' | 'ellipse' | 'parallelogram' | 'text'
 
+export type Theme = 'light' | 'dark'
+export type Locale = 'zh-CN' | 'en-US'
+
 export type AnchorPosition = 'top' | 'right' | 'bottom' | 'left'
 
 export type ResizeHandleId =

@@ -11,8 +11,8 @@
       :x="node.x" :y="node.y"
       :width="node.width" :height="node.height"
       :rx="node.style?.borderRadius ?? 4"
-      :fill="node.style?.backgroundColor ?? '#fff'"
-      :stroke="node.style?.borderColor ?? '#333'"
+      :fill="node.style?.backgroundColor ?? 'var(--fc-node-default-fill)'"
+      :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
       :stroke-width="node.style?.borderWidth ?? 2"
       :opacity="node.style?.opacity ?? 1"
     />
@@ -21,8 +21,8 @@
     <polygon
       v-if="node.type === 'diamond'"
       :points="diamondPoints"
-      :fill="node.style?.backgroundColor ?? '#fff'"
-      :stroke="node.style?.borderColor ?? '#333'"
+      :fill="node.style?.backgroundColor ?? 'var(--fc-node-default-fill)'"
+      :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
       :stroke-width="node.style?.borderWidth ?? 2"
       :opacity="node.style?.opacity ?? 1"
     />
@@ -32,8 +32,8 @@
       v-if="node.type === 'ellipse'"
       :cx="cx" :cy="cy"
       :rx="node.width / 2" :ry="node.height / 2"
-      :fill="node.style?.backgroundColor ?? '#fff'"
-      :stroke="node.style?.borderColor ?? '#333'"
+      :fill="node.style?.backgroundColor ?? 'var(--fc-node-default-fill)'"
+      :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
       :stroke-width="node.style?.borderWidth ?? 2"
       :opacity="node.style?.opacity ?? 1"
     />
@@ -42,8 +42,8 @@
     <polygon
       v-if="node.type === 'parallelogram'"
       :points="parallelogramPoints"
-      :fill="node.style?.backgroundColor ?? '#fff'"
-      :stroke="node.style?.borderColor ?? '#333'"
+      :fill="node.style?.backgroundColor ?? 'var(--fc-node-default-fill)'"
+      :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
       :stroke-width="node.style?.borderWidth ?? 2"
       :opacity="node.style?.opacity ?? 1"
     />
@@ -53,8 +53,8 @@
       <rect
         :x="node.x" :y="node.y"
         :width="node.width" :height="node.height"
-        :fill="isSelected ? 'rgba(0,0,0,0.04)' : 'rgba(0,0,0,0.02)'"
-        :stroke="isSelected ? '#999' : '#ccc'"
+        :fill="isSelected ? 'var(--fc-text-node-selected-fill)' : 'var(--fc-text-node-fill)'"
+        :stroke="isSelected ? 'var(--fc-text-node-selected-stroke)' : 'var(--fc-text-node-stroke)'"
         :stroke-width="1"
         :stroke-dasharray="'4,3'"
         rx="2"
@@ -79,7 +79,7 @@
           justifyContent: 'center',
           textAlign: 'center',
           fontSize: (node.style?.fontSize ?? 14) + 'px',
-          color: node.style?.textColor ?? '#000',
+          color: node.style?.textColor ?? 'var(--fc-node-default-text)',
           opacity: node.style?.opacity ?? 1,
           lineHeight: ((node.style?.fontSize ?? 14) + 4) + 'px',
           wordBreak: 'break-word',

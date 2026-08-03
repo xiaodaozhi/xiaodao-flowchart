@@ -22,7 +22,7 @@
               class="color-btn"
               :class="{ active: c === activeColor, 'is-default': c === defaultColor }"
               :style="{ backgroundColor: c }"
-              :title="c === defaultColor ? '默认颜色' : c"
+              :title="c === defaultColor ? i18n.t('edge.defaultColor') : c"
               @click="$emit('pickColor', c)"
             />
           </div>
@@ -43,7 +43,7 @@
         <div class="separator"></div>
 
         <!-- Delete button -->
-        <button class="delete-btn" title="删除连线" @click="$emit('delete')">
+        <button class="delete-btn" :title="i18n.t('edge.delete')" @click="$emit('delete')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
@@ -60,6 +60,8 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from 'vue'
 import { EDGE_PRESET_COLORS, EDGE_DEFAULT_COLOR } from '../../utils/colorUtils'
+import { useFlowchartContext } from '../../composables/useFlowchartContext'
+import { createI18n } from '../../composables/useFlowchartI18n'
 
 const props = defineProps<{
   visible: boolean
@@ -70,6 +72,9 @@ defineEmits<{
   pickColor: [color: string]
   delete: []
 }>()
+
+const { locale } = useFlowchartContext()
+const i18n = computed(() => createI18n(locale))
 
 const colors = EDGE_PRESET_COLORS
 const defaultColor = EDGE_DEFAULT_COLOR
@@ -135,10 +140,10 @@ watch(() => props.visible, async (v) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fff;
+  background: var(--fc-bar-bg);
   border-radius: 4px;
   padding: 8px 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  box-shadow: var(--fc-bar-shadow);
   pointer-events: auto;
   max-width: calc(100vw - 170px);
   width: fit-content;
@@ -162,7 +167,7 @@ watch(() => props.visible, async (v) => {
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: #888;
+  color: var(--fc-bar-scroll-arrow);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -178,15 +183,15 @@ watch(() => props.visible, async (v) => {
 }
 
 .scroll-arrow:hover {
-  color: #333;
-  background: #eee;
+  color: var(--fc-bar-scroll-arrow-hover);
+  background: var(--fc-bar-scroll-arrow-hover-bg);
 }
 
 .color-btn {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid #ddd;
+  border: 2px solid var(--fc-bar-color-btn-border);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -197,12 +202,12 @@ watch(() => props.visible, async (v) => {
 }
 
 .color-btn:hover {
-  border-color: #999;
+  border-color: var(--fc-bar-color-btn-border-hover);
   transform: scale(1.15);
 }
 
 .color-btn.active {
-  border-color: #333;
+  border-color: var(--fc-bar-color-btn-border-active);
   border-width: 3px;
 }
 
@@ -213,7 +218,7 @@ watch(() => props.visible, async (v) => {
 .separator {
   width: 1px;
   height: 24px;
-  background: #ddd;
+  background: var(--fc-bar-separator);
   flex-shrink: 0;
 }
 
@@ -223,7 +228,7 @@ watch(() => props.visible, async (v) => {
   border-radius: 50%;
   border: none;
   background: transparent;
-  color: #888;
+  color: var(--fc-bar-delete);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -233,8 +238,8 @@ watch(() => props.visible, async (v) => {
 }
 
 .delete-btn:hover {
-  color: #e53935;
-  background: #fce4e4;
+  color: var(--fc-bar-delete-hover);
+  background: var(--fc-bar-delete-hover-bg);
 }
 
 /* Transition */

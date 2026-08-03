@@ -8,4 +8,6 @@ export type {
   NodeStyle,
   EdgeStyle,
   SidebarNodeTemplate,
+  Theme,
+  Locale,
 } from '../../types'

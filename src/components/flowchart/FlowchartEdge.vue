@@ -32,7 +32,7 @@
       text-anchor="middle"
       dominant-baseline="central"
       font-size="12"
-      fill="#666"
+      :fill="'var(--fc-edge-label-fill)'"
       style="pointer-events: none;"
     >
       {{ edge.label }}
