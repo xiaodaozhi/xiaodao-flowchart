@@ -3,6 +3,8 @@ import type { Point, Rect } from './geometry'
 
 const EXIT_MARGIN = 40
 const NODE_PADDING = 15
+const MAX_AVOIDANCE_PASSES = 80
+const BEND_PENALTY = 20
 
 export interface NodeRect {
   id: string
@@ -25,7 +27,7 @@ export function computeOrthogonalWaypoints(
 ): Point[] {
   const points = buildSafeWaypoints(source, sourceAnchor, target, targetAnchor, sourceRect, targetRect)
   if (allNodes && allNodes.length > 0) {
-    return avoidThirdPartyNodes(points, allNodes, excludeNodeIds ?? [])
+    return avoidThirdPartyNodes(points, allNodes, excludeNodeIds ?? [], sourceAnchor, targetAnchor)
   }
   return points
 }
@@ -362,56 +364,323 @@ function detourHV(
 
 // ─── Third-party node avoidance ─────────────────────────────────────────
 
-function avoidThirdPartyNodes(points: Point[], nodes: NodeRect[], excludeIds: string[]): Point[] {
+function avoidThirdPartyNodes(
+  points: Point[],
+  nodes: NodeRect[],
+  excludeIds: string[],
+  sourceAnchor: AnchorPosition,
+  targetAnchor: AnchorPosition,
+): Point[] {
   const toAvoid = nodes.filter(n => n.type !== 'text' && !excludeIds.includes(n.id))
   if (toAvoid.length === 0) return points
 
-  let result = points
-  for (const node of toAvoid) {
-    const avoided: Point[] = [result[0]]
-    for (let i = 1; i < result.length; i++) {
-      const a = result[i - 1], b = result[i]
-      if (isHSeg(a, b)) {
-        const sy = a.y
-        const nTop = node.y - NODE_PADDING, nBot = node.y + node.height + NODE_PADDING
-        if (sy >= nTop && sy <= nBot) {
-          const sl = Math.min(a.x, b.x), sr = Math.max(a.x, b.x)
-          const nl = node.x - NODE_PADDING, nr = node.x + node.width + NODE_PADDING
-          if (sl < nr && sr > nl) {
-            const goUp = (sy - nTop) <= (nBot - sy)
-            const offY = goUp ? nTop : nBot
-            avoided.push({ x: a.x, y: a.y })
-            if (a.x !== b.x) {
-              avoided.push({ x: nl, y: a.y }, { x: nl, y: offY }, { x: nr, y: offY }, { x: nr, y: a.y })
-            }
-            continue
-          }
-        }
-        avoided.push(b)
-      } else if (isVSeg(a, b)) {
-        const sx = a.x
-        const nl = node.x - NODE_PADDING, nr = node.x + node.width + NODE_PADDING
-        if (sx >= nl && sx <= nr) {
-          const st = Math.min(a.y, b.y), sb = Math.max(a.y, b.y)
-          const nt = node.y - NODE_PADDING, nb = node.y + node.height + NODE_PADDING
-          if (st < nb && sb > nt) {
-            const goL = (sx - nl) <= (nr - sx)
-            const offX = goL ? nl : nr
-            avoided.push({ x: a.x, y: a.y })
-            if (a.y !== b.y) {
-              avoided.push({ x: a.x, y: nt }, { x: offX, y: nt }, { x: offX, y: nb }, { x: a.x, y: nb })
-            }
-            continue
-          }
-        }
-        avoided.push(b)
-      } else {
-        avoided.push(b)
-      }
-    }
-    result = avoided
+  if (!findFirstBlockedSegment(points, toAvoid)) return points
+
+  const globalRoute = routeAroundAllNodes(points, toAvoid, sourceAnchor, targetAnchor)
+  if (globalRoute) return globalRoute
+
+  let result = cleanPath(points)
+  for (let pass = 0; pass < MAX_AVOIDANCE_PASSES; pass++) {
+    const hit = findFirstBlockedSegment(result, toAvoid)
+    if (!hit) return result
+
+    const a = result[hit.segmentEndIndex - 1]
+    const b = result[hit.segmentEndIndex]
+    const detour = routeAroundNode(a, b, hit.node)
+    result = cleanPath([
+      ...result.slice(0, hit.segmentEndIndex),
+      ...detour,
+      ...result.slice(hit.segmentEndIndex + 1),
+    ])
   }
   return result
+}
+
+function routeAroundAllNodes(
+  points: Point[],
+  nodes: NodeRect[],
+  sourceAnchor: AnchorPosition,
+  targetAnchor: AnchorPosition,
+): Point[] | null {
+  const source = points[0]
+  const target = points[points.length - 1]
+  const startExit = chooseEndpoint(source, points[1], sourceAnchor, nodes, 'source')
+  const endExit = chooseEndpoint(target, points[points.length - 2], targetAnchor, nodes, 'target')
+
+  const prefix = startExit === source ? [] : [source]
+  const suffix = endExit === target ? [] : [target]
+  const endDir = endExit === target ? null : targetAnchor === 'left' || targetAnchor === 'right' ? 'v' : 'h'
+  const routed = findGridRoute(startExit, endExit, points, nodes, endDir) ??
+    findGridRoute(startExit, endExit, points, nodes, null)
+  if (!routed) return null
+
+  return cleanPath([...prefix, ...routed, ...suffix])
+}
+
+function chooseEndpoint(
+  anchorPoint: Point,
+  existingExit: Point | undefined,
+  anchor: AnchorPosition,
+  nodes: NodeRect[],
+  role: 'source' | 'target',
+): Point {
+  const candidates: Point[] = []
+  if (existingExit) candidates.push(existingExit)
+
+  const dir = getDir(anchor)
+  candidates.push({
+    x: anchorPoint.x + dir.x * EXIT_MARGIN,
+    y: anchorPoint.y + dir.y * EXIT_MARGIN,
+  })
+
+  for (const candidate of candidates) {
+    const a = role === 'source' ? anchorPoint : candidate
+    const b = role === 'source' ? candidate : anchorPoint
+    if (!pointBlocked(candidate, nodes) && segmentClear(a, b, nodes)) return candidate
+  }
+  return anchorPoint
+}
+
+function findGridRoute(
+  start: Point,
+  end: Point,
+  basePoints: Point[],
+  nodes: NodeRect[],
+  endDir: 'h' | 'v' | null,
+): Point[] | null {
+  const xs = uniqueSorted([start.x, end.x, ...basePoints.map(p => p.x)])
+  const ys = uniqueSorted([start.y, end.y, ...basePoints.map(p => p.y)])
+
+  for (const node of nodes) {
+    const bounds = paddedBounds(node)
+    xs.push(bounds.left, bounds.right)
+    ys.push(bounds.top, bounds.bottom)
+  }
+  xs.sort((a, b) => a - b)
+  ys.sort((a, b) => a - b)
+
+  const valid = new Set<string>()
+  const pointByKey = new Map<string, Point>()
+  for (const x of uniqueSorted(xs)) {
+    for (const y of uniqueSorted(ys)) {
+      const point = { x, y }
+      if (pointBlocked(point, nodes)) continue
+      const key = pointKey(point)
+      valid.add(key)
+      pointByKey.set(key, point)
+    }
+  }
+
+  const startKey = pointKey(start)
+  const endKey = pointKey(end)
+  if (!valid.has(startKey) || !valid.has(endKey)) return null
+
+  const edges = new Map<string, { key: string; dir: 'h' | 'v'; cost: number }[]>()
+  for (const y of uniqueSorted(ys)) {
+    const row = uniqueSorted(xs).map(x => ({ x, y })).filter(p => valid.has(pointKey(p)))
+    for (let i = 1; i < row.length; i++) addGridEdge(row[i - 1], row[i], 'h', nodes, edges)
+  }
+  for (const x of uniqueSorted(xs)) {
+    const col = uniqueSorted(ys).map(y => ({ x, y })).filter(p => valid.has(pointKey(p)))
+    for (let i = 1; i < col.length; i++) addGridEdge(col[i - 1], col[i], 'v', nodes, edges)
+  }
+
+  return runShortestPath(startKey, endKey, pointByKey, edges, endDir)
+}
+
+function addGridEdge(
+  a: Point,
+  b: Point,
+  dir: 'h' | 'v',
+  nodes: NodeRect[],
+  edges: Map<string, { key: string; dir: 'h' | 'v'; cost: number }[]>,
+) {
+  if (!segmentClear(a, b, nodes)) return
+  const ak = pointKey(a)
+  const bk = pointKey(b)
+  const cost = Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+  if (!edges.has(ak)) edges.set(ak, [])
+  if (!edges.has(bk)) edges.set(bk, [])
+  edges.get(ak)!.push({ key: bk, dir, cost })
+  edges.get(bk)!.push({ key: ak, dir, cost })
+}
+
+function runShortestPath(
+  startKey: string,
+  endKey: string,
+  pointByKey: Map<string, Point>,
+  edges: Map<string, { key: string; dir: 'h' | 'v'; cost: number }[]>,
+  endDir: 'h' | 'v' | null,
+): Point[] | null {
+  type Dir = 'h' | 'v' | 'start'
+  interface State { key: string; dir: Dir }
+
+  const stateKey = (state: State) => `${state.key}|${state.dir}`
+  const dist = new Map<string, number>()
+  const prev = new Map<string, string>()
+  const queue: { state: State; cost: number }[] = [{ state: { key: startKey, dir: 'start' }, cost: 0 }]
+  dist.set(stateKey(queue[0].state), 0)
+
+  let finalState: string | null = null
+  while (queue.length > 0) {
+    queue.sort((a, b) => a.cost - b.cost)
+    const current = queue.shift()!
+    const currentKey = stateKey(current.state)
+    if (current.cost !== dist.get(currentKey)) continue
+    if (current.state.key === endKey && (!endDir || current.state.dir === endDir || current.state.dir === 'start')) {
+      finalState = currentKey
+      break
+    }
+
+    for (const edge of edges.get(current.state.key) ?? []) {
+      const turnCost = current.state.dir !== 'start' && current.state.dir !== edge.dir ? BEND_PENALTY : 0
+      const nextState: State = { key: edge.key, dir: edge.dir }
+      const nextKey = stateKey(nextState)
+      const nextCost = current.cost + edge.cost + turnCost
+      if (nextCost >= (dist.get(nextKey) ?? Infinity)) continue
+      dist.set(nextKey, nextCost)
+      prev.set(nextKey, currentKey)
+      queue.push({ state: nextState, cost: nextCost })
+    }
+  }
+
+  if (!finalState) return null
+
+  const keys: string[] = []
+  for (let key: string | undefined = finalState; key; key = prev.get(key)) {
+    keys.push(key.split('|')[0])
+  }
+  keys.reverse()
+  return cleanPath(keys.map(key => pointByKey.get(key)!))
+}
+
+interface SegmentHit {
+  node: NodeRect
+  segmentEndIndex: number
+  distance: number
+}
+
+function findFirstBlockedSegment(points: Point[], nodes: NodeRect[]): SegmentHit | null {
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1]
+    const b = points[i]
+    let nearest: SegmentHit | null = null
+    for (const node of nodes) {
+      const distance = segmentNodeHitDistance(a, b, node)
+      if (distance === null) continue
+      if (!nearest || distance < nearest.distance) {
+        nearest = { node, segmentEndIndex: i, distance }
+      }
+    }
+    if (nearest) return nearest
+  }
+  return null
+}
+
+function segmentNodeHitDistance(a: Point, b: Point, node: NodeRect): number | null {
+  const bounds = paddedBounds(node)
+  if (isHSeg(a, b)) {
+    if (a.y <= bounds.top || a.y >= bounds.bottom) return null
+    const segMin = Math.min(a.x, b.x)
+    const segMax = Math.max(a.x, b.x)
+    if (segMax <= bounds.left || segMin >= bounds.right) return null
+    const entryX = b.x >= a.x ? Math.max(a.x, bounds.left) : Math.min(a.x, bounds.right)
+    return Math.abs(entryX - a.x)
+  }
+  if (isVSeg(a, b)) {
+    if (a.x <= bounds.left || a.x >= bounds.right) return null
+    const segMin = Math.min(a.y, b.y)
+    const segMax = Math.max(a.y, b.y)
+    if (segMax <= bounds.top || segMin >= bounds.bottom) return null
+    const entryY = b.y >= a.y ? Math.max(a.y, bounds.top) : Math.min(a.y, bounds.bottom)
+    return Math.abs(entryY - a.y)
+  }
+  return null
+}
+
+function routeAroundNode(a: Point, b: Point, node: NodeRect): Point[] {
+  const bounds = paddedBounds(node)
+  if (isHSeg(a, b)) {
+    const movingRight = b.x >= a.x
+    const entryX = movingRight ? bounds.left : bounds.right
+    const exitX = movingRight ? bounds.right : bounds.left
+    const goUp = (a.y - bounds.top) <= (bounds.bottom - a.y)
+    const offY = goUp ? bounds.top : bounds.bottom
+    return [
+      { x: entryX, y: a.y },
+      { x: entryX, y: offY },
+      { x: exitX, y: offY },
+      { x: exitX, y: a.y },
+      b,
+    ]
+  }
+  if (isVSeg(a, b)) {
+    const movingDown = b.y >= a.y
+    const entryY = movingDown ? bounds.top : bounds.bottom
+    const exitY = movingDown ? bounds.bottom : bounds.top
+    const goLeft = (a.x - bounds.left) <= (bounds.right - a.x)
+    const offX = goLeft ? bounds.left : bounds.right
+    return [
+      { x: a.x, y: entryY },
+      { x: offX, y: entryY },
+      { x: offX, y: exitY },
+      { x: a.x, y: exitY },
+      b,
+    ]
+  }
+  return [b]
+}
+
+function paddedBounds(node: NodeRect) {
+  return {
+    left: node.x - NODE_PADDING,
+    right: node.x + node.width + NODE_PADDING,
+    top: node.y - NODE_PADDING,
+    bottom: node.y + node.height + NODE_PADDING,
+  }
+}
+
+function pointBlocked(point: Point, nodes: NodeRect[]): boolean {
+  return nodes.some(node => {
+    const bounds = paddedBounds(node)
+    return point.x > bounds.left && point.x < bounds.right && point.y > bounds.top && point.y < bounds.bottom
+  })
+}
+
+function segmentClear(a: Point, b: Point, nodes: NodeRect[]): boolean {
+  return !nodes.some(node => segmentNodeHitDistance(a, b, node) !== null)
+}
+
+function cleanPath(points: Point[]): Point[] {
+  const cleaned: Point[] = []
+  for (const point of points) {
+    const prev = cleaned[cleaned.length - 1]
+    if (!prev || prev.x !== point.x || prev.y !== point.y) cleaned.push(point)
+  }
+
+  const simplified: Point[] = []
+  for (const point of cleaned) {
+    simplified.push(point)
+    while (simplified.length >= 3) {
+      const a = simplified[simplified.length - 3]
+      const b = simplified[simplified.length - 2]
+      const c = simplified[simplified.length - 1]
+      if ((isHSeg(a, b) && isHSeg(b, c)) || (isVSeg(a, b) && isVSeg(b, c))) {
+        simplified.splice(simplified.length - 2, 1)
+      } else {
+        break
+      }
+    }
+  }
+  return simplified
+}
+
+function pointKey(point: Point): string {
+  return `${point.x},${point.y}`
+}
+
+function uniqueSorted(values: number[]): number[] {
+  return Array.from(new Set(values)).sort((a, b) => a - b)
 }
 
 // ─── Geometry helpers ────────────────────────────────────────────────────
