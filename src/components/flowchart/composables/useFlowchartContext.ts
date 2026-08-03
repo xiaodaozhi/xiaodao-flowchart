@@ -1,4 +1,4 @@
-import { inject, type InjectionKey, type Ref } from 'vue';
+import { computed, inject, type InjectionKey, type Ref } from 'vue';
 import type { Theme, Locale } from '../types';
 
 export const themeKey: InjectionKey<Ref<Theme>> = Symbol('theme');
@@ -11,8 +11,8 @@ export function useFlowchartContext() {
   const mobile = inject(mobileKey);
 
   return {
-    theme: theme?.value ?? ('light' as Theme),
-    locale: locale?.value ?? ('zh-CN' as Locale),
-    mobile: mobile?.value ?? false,
+    theme: computed(() => theme?.value ?? ('light' as Theme)),
+    locale: computed(() => locale?.value ?? ('zh-CN' as Locale)),
+    mobile: computed(() => mobile?.value ?? false),
   };
 }

@@ -29,6 +29,7 @@
 
   --fc-editor-bg: rgba(255, 255, 255, 0.95);
   --fc-editor-focus-border: #4A90D9;
+  --fc-editor-text: #000;
 
   --fc-node-default-fill: #fff;
   --fc-node-default-stroke: #333;
@@ -70,6 +71,7 @@
 
   --fc-editor-bg: rgba(45, 45, 45, 0.95);
   --fc-editor-focus-border: #4A90D9;
+  --fc-editor-text: #ddd;
 
   --fc-node-default-fill: #3a3a3a;
   --fc-node-default-stroke: #aaa;

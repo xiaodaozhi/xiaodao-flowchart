@@ -146,11 +146,10 @@ const darkDefaultFill = '#3a3a3a';
 
 const resolvedBgColor = computed(() => {
   if (props.node.style?.backgroundColor) return props.node.style.backgroundColor;
-  return currentTheme === 'dark' ? darkDefaultFill : lightDefaultFill;
+  return currentTheme.value === 'dark' ? darkDefaultFill : lightDefaultFill;
 });
 
 const resolvedTextColor = computed(() => {
-  if (props.node.style?.textColor) return props.node.style.textColor;
   return contrastColor(resolvedBgColor.value);
 });
 

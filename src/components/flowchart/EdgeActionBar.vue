@@ -112,7 +112,7 @@ defineEmits<{
 }>();
 
 const { locale } = useFlowchartContext();
-const i18n = computed(() => createI18n(locale));
+const i18n = computed(() => createI18n(locale.value));
 
 const colors = EDGE_PRESET_COLORS;
 const defaultColor = EDGE_DEFAULT_COLOR;

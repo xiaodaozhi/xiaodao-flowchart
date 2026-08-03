@@ -211,7 +211,6 @@
       :width="editingInfo.width"
       :text="editingInfo.text"
       :font-size="editingInfo.fontSize"
-      :color="editingInfo.color"
       :viewport="viewport"
       @commit="(t: string) => emit('labelCommit', t)"
       @cancel="() => emit('labelCancel')"
@@ -240,7 +239,7 @@ const props = defineProps<{
   selectedNodeId: string | null; selectedEdgeId: string | null;
   drawingState: EdgeDrawingState | null;
   editingNodeId: string | null;
-  editingInfo: { cx: number; cy: number; width: number; text: string; fontSize: number; color: string } | null;
+  editingInfo: { cx: number; cy: number; width: number; text: string; fontSize: number } | null;
   editingKey: number;
 }>();
 
@@ -275,8 +274,8 @@ const snapSize = computed(() => {
 });
 
 // Grid dot colors — computed from theme since SVG patterns can't use CSS var()
-const gridDotStrong = computed(() => currentTheme === 'dark' ? '#555' : '#B0B0B0');
-const gridDotWeak = computed(() => currentTheme === 'dark' ? '#444' : '#D0D0D0');
+const gridDotStrong = computed(() => currentTheme.value === 'dark' ? '#555' : '#B0B0B0');
+const gridDotWeak = computed(() => currentTheme.value === 'dark' ? '#444' : '#D0D0D0');
 
 // --- everything below is unchanged from the original ---
 

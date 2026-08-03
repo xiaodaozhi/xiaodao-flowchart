@@ -65,7 +65,7 @@ import { useKeyboard } from './composables/useKeyboard.ts';
 import { themeKey, localeKey, mobileKey } from './composables/useFlowchartContext.ts';
 import { createI18n } from './composables/useFlowchartI18n.ts';
 import { getAnchorDisplayPoint } from './utils/anchorUtils';
-import { contrastColor, DEFAULT_COLOR, EDGE_DEFAULT_COLOR } from './utils/colorUtils';
+import { DEFAULT_COLOR, EDGE_DEFAULT_COLOR } from './utils/colorUtils';
 import NodeSidebar from './NodeSidebar.vue';
 import FlowchartCanvas from './FlowchartCanvas.vue';
 import NodeActionBar from './NodeActionBar.vue';
@@ -125,7 +125,6 @@ const editingInfo = computed(() => {
     width: n.width,
     text: n.label,
     fontSize: n.style?.fontSize ?? 14,
-    color: n.style?.textColor ?? '#000',
   };
 });
 
@@ -247,11 +246,10 @@ function onPickNodeColor(color: string) {
   const id = selectedNodeId.value;
   if (!id) return;
   if (color === DEFAULT_COLOR) {
-    // Remove backgroundColor and textColor from style, let auto-computed values take over
+    // Remove backgroundColor from style, let auto-computed values take over
     model.updateNode(id, { style: { ...model.getNode(id)?.style, backgroundColor: undefined, textColor: undefined } });
   } else {
-    const textColor = contrastColor(color);
-    model.updateNode(id, { style: { ...model.getNode(id)?.style, backgroundColor: color, textColor } });
+    model.updateNode(id, { style: { ...model.getNode(id)?.style, backgroundColor: color, textColor: undefined } });
   }
 }
 

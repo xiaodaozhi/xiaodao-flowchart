@@ -75,7 +75,7 @@
           />
           <text
             x="16"
-            y="15"
+            y="16"
             text-anchor="middle"
             font-size="12"
             fill="var(--fc-sidebar-icon-stroke)"

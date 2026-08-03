@@ -114,7 +114,7 @@ defineEmits<{
 }>();
 
 const { locale } = useFlowchartContext();
-const i18n = computed(() => createI18n(locale));
+const i18n = computed(() => createI18n(locale.value));
 
 const colors = PRESET_COLORS;
 const defaultColor = DEFAULT_COLOR;

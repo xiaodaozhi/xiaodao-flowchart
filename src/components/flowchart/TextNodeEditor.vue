@@ -27,7 +27,6 @@ const props = defineProps<{
   width: number;
   text: string;
   fontSize?: number;
-  color?: string;
   viewport: CanvasViewport;
 }>();
 
@@ -52,7 +51,6 @@ const editorStyle = computed(() => {
 
 const inputStyle = computed(() => ({
   fontSize: `${(props.fontSize ?? 14) * props.viewport.zoom}px`,
-  color: props.color ?? '#000',
 }));
 
 const rows = computed(() => {
@@ -93,6 +91,7 @@ onMounted(async () => {
   box-sizing: border-box;
   background: var(--fc-editor-bg);
   text-align: center;
+  color: var(--fc-editor-text);
   resize: none;
   overflow: hidden;
 }
