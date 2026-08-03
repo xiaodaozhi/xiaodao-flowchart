@@ -490,7 +490,8 @@ function onPointerDown(event: PointerEvent) {
     lastClickTime = now;
     emit('nodeClick', nid);
     drag = { type: 'clickPending', nodeId: nid, startPX: event.clientX, startPY: event.clientY };
-    event.preventDefault(); return;
+    event.preventDefault();
+    return;
   }
 
   lastClickNodeId = null;
@@ -526,7 +527,8 @@ function onPointerMove(event: PointerEvent) {
         }
       }
     }
-    hoveredNodeId.value = bn; hoveredAnchor.value = ba;
+    hoveredNodeId.value = bn;
+    hoveredAnchor.value = ba;
     // Draw temp edge path: always show dashed line following mouse
     const edge = props.edges.find((e) => e.id === edgeId);
     if (edge) {
