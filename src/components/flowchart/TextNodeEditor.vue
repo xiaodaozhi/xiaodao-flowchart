@@ -1,10 +1,10 @@
 <template>
   <div class="text-editor-overlay" :style="editorStyle">
-    <input
+    <textarea
       v-model="editText"
       class="editor-input"
       :style="inputStyle"
-      @keydown.enter="commit"
+      @keydown.enter.exact="commit"
       @keydown.escape="() => $emit('cancel')"
       @blur="commit"
       ref="inputRef"
@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick } from 'vue'
+import { computed, ref, onMounted, nextTick, watch } from 'vue'
 import type { CanvasViewport } from '../../types'
 
 const props = defineProps<{
@@ -32,7 +32,7 @@ const emit = defineEmits<{
 }>()
 
 const editText = ref(props.text)
-const inputRef = ref<HTMLInputElement | null>(null)
+const inputRef = ref<HTMLTextAreaElement | null>(null)
 
 const editorStyle = computed(() => {
   const { panX, panY, zoom } = props.viewport
@@ -41,8 +41,7 @@ const editorStyle = computed(() => {
     left: `${props.cx * zoom + panX}px`,
     top: `${props.cy * zoom + panY}px`,
     width: `${w}px`,
-    marginLeft: `${-w / 2}px`,
-    marginTop: `${-(props.fontSize ?? 14) * zoom / 2 - 8}px`,
+    transform: 'translate(-50%, -50%)',
   }
 })
 
@@ -59,10 +58,23 @@ function commit() {
   }
 }
 
+function autoResize() {
+  const el = inputRef.value
+  if (el) {
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 'px'
+  }
+}
+
+watch(editText, () => {
+  nextTick(autoResize)
+})
+
 onMounted(async () => {
   await nextTick()
   inputRef.value?.focus()
   inputRef.value?.select()
+  autoResize()
 })
 </script>
 
@@ -84,5 +96,7 @@ onMounted(async () => {
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.95);
   text-align: center;
+  resize: none;
+  overflow: hidden;
 }
 </style>

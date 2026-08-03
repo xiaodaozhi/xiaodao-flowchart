@@ -49,6 +49,34 @@
             :show-anchors="shouldShowAnchors(node.id)" :is-editing="false"
             :hovered-anchor="hoveredAnchor" :hovered-node-id="hoveredNodeId" />
         </g>
+        <g class="edge-handles-layer">
+          <template v-for="edge in validEdges" :key="edge.id + '-handles'">
+            <g v-if="edge.id === selectedEdgeId">
+              <circle
+                :data-edge-handle="'source'"
+                :data-edge-id="edge.id"
+                :cx="getEdgeSourcePoint(edge).x"
+                :cy="getEdgeSourcePoint(edge).y"
+                r="6"
+                fill="#4A90D9"
+                stroke="#fff"
+                stroke-width="2"
+                style="cursor: grab;"
+              />
+              <circle
+                :data-edge-handle="'target'"
+                :data-edge-id="edge.id"
+                :cx="getEdgeTargetPoint(edge).x"
+                :cy="getEdgeTargetPoint(edge).y"
+                r="6"
+                fill="#4A90D9"
+                stroke="#fff"
+                stroke-width="2"
+                style="cursor: grab;"
+              />
+            </g>
+          </template>
+        </g>
         <path v-if="tempEdgePath" :d="tempEdgePath" fill="none" stroke="#4A90D9" stroke-width="2" stroke-linecap="round" stroke-dasharray="6,3" />
       </g>
     </svg>
@@ -161,6 +189,14 @@ const edgeRoutingNodes = computed(() =>
 )
 
 function getNode(id: string): FlowchartNode | undefined { return props.nodes.find(n => n.id === id) }
+function getEdgeSourcePoint(edge: FlowchartEdge) {
+  const n = getNode(edge.sourceNodeId)
+  return n ? getAnchorPoint(n, edge.sourceAnchor) : { x: 0, y: 0 }
+}
+function getEdgeTargetPoint(edge: FlowchartEdge) {
+  const n = getNode(edge.targetNodeId)
+  return n ? getAnchorPoint(n, edge.targetAnchor) : { x: 0, y: 0 }
+}
 function shouldShowAnchors(nodeId: string): boolean {
   if (nodeId === props.selectedNodeId) return true
   if (props.drawingState?.active && nodeId !== props.drawingState.sourceNodeId) return true

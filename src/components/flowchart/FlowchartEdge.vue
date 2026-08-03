@@ -36,31 +36,6 @@
     >
       {{ edge.label }}
     </text>
-    <!-- Drag handles (visible when selected) -->
-    <g v-if="isSelected" class="edge-handles">
-      <circle
-        :data-edge-handle="'source'"
-        :data-edge-id="edge.id"
-        :cx="sourcePoint.x"
-        :cy="sourcePoint.y"
-        r="6"
-        fill="#4A90D9"
-        stroke="#fff"
-        stroke-width="2"
-        style="cursor: grab;"
-      />
-      <circle
-        :data-edge-handle="'target'"
-        :data-edge-id="edge.id"
-        :cx="targetPoint.x"
-        :cy="targetPoint.y"
-        r="6"
-        fill="#4A90D9"
-        stroke="#fff"
-        stroke-width="2"
-        style="cursor: grab;"
-      />
-    </g>
   </g>
 </template>
 
