@@ -39,3 +39,4 @@ function isHighlighted(pos: AnchorPosition): boolean {
   return props.hoveredNodeId === props.node.id && props.hoveredAnchor === pos
 }
 </script>
+

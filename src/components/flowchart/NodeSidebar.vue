@@ -132,3 +132,4 @@ function onDragStart(event: DragEvent, type: NodeType) {
   white-space: nowrap;
 }
 </style>
+
