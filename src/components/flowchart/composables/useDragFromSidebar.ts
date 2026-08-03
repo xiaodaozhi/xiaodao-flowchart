@@ -1,6 +1,6 @@
 import { computed, type ComputedRef } from 'vue'
 import type { NodeType, SidebarNodeTemplate } from '../types'
-import { snapToGrid } from '../utils/geometry'
+import { snapToGrid } from '.././utils/geometry'
 import { BASE_GRID_SIZE } from '../types'
 import type { createI18n } from './useFlowchartI18n'
 

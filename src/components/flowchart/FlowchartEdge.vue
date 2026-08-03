@@ -42,12 +42,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { FlowchartEdge, FlowchartNode } from '../../types'
-import { getAnchorPoint } from '../../utils/anchorUtils'
-import { computeOrthogonalWaypoints, buildRoundedPath } from '../../utils/edgeRouting'
-import { midpoint } from '../../utils/geometry'
+import './style/theme.css'
+import type { FlowchartEdge, FlowchartNode } from './types'
+import { getAnchorPoint } from './utils/anchorUtils'
+import { computeOrthogonalWaypoints, buildRoundedPath } from './utils/edgeRouting'
+import { midpoint } from './utils/geometry'
 
-import type { NodeRect } from '../../utils/edgeRouting'
+import type { NodeRect } from './utils/edgeRouting'
 
 const props = defineProps<{
   edge: FlowchartEdge

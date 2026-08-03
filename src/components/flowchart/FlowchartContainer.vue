@@ -48,18 +48,18 @@
 
 <script setup lang="ts">
 import { ref, computed, toRef, type Ref, provide } from 'vue'
-import type { FlowchartData, AnchorPosition, NodeType, Theme, Locale } from '../../types'
-import { GRID_SIZE } from '../../types'
-import { useFlowchartModel } from '../../composables/useFlowchartModel'
-import { useSelection } from '../../composables/useSelection'
-import { useDragFromSidebar } from '../../composables/useDragFromSidebar'
-import { useEdgeDrawing } from '../../composables/useEdgeDrawing'
-import { useCanvasPanZoom } from '../../composables/useCanvasPanZoom'
-import { useKeyboard } from '../../composables/useKeyboard'
-import { themeKey, localeKey, mobileKey } from '../../composables/useFlowchartContext'
-import { createI18n } from '../../composables/useFlowchartI18n'
-import { getAnchorDisplayPoint } from '../../utils/anchorUtils'
-import { contrastColor, DEFAULT_COLOR, EDGE_DEFAULT_COLOR } from '../../utils/colorUtils'
+import type { FlowchartData, AnchorPosition, NodeType, Theme, Locale } from './types/index.ts'
+import { GRID_SIZE } from './types/index.ts'
+import { useFlowchartModel } from './composables/useFlowchartModel.ts'
+import { useSelection } from './composables/useSelection.ts'
+import { useDragFromSidebar } from './composables/useDragFromSidebar.ts'
+import { useEdgeDrawing } from './composables/useEdgeDrawing.ts'
+import { useCanvasPanZoom } from './composables/useCanvasPanZoom.ts'
+import { useKeyboard } from './composables/useKeyboard.ts'
+import { themeKey, localeKey, mobileKey } from './composables/useFlowchartContext.ts'
+import { createI18n } from './composables/useFlowchartI18n.ts'
+import { getAnchorDisplayPoint } from './utils/anchorUtils'
+import { contrastColor, DEFAULT_COLOR, EDGE_DEFAULT_COLOR } from './utils/colorUtils'
 import NodeSidebar from './NodeSidebar.vue'
 import FlowchartCanvas from './FlowchartCanvas.vue'
 import NodeActionBar from './NodeActionBar.vue'
@@ -209,8 +209,8 @@ function onPickNodeColor(color: string) {
   const id = selectedNodeId.value
   if (!id) return
   if (color === DEFAULT_COLOR) {
-    // Remove backgroundColor from style, use default
-    model.updateNode(id, { style: { ...model.getNode(id)?.style, backgroundColor: undefined } })
+    // Remove backgroundColor and textColor from style, let auto-computed values take over
+    model.updateNode(id, { style: { ...model.getNode(id)?.style, backgroundColor: undefined, textColor: undefined } })
   } else {
     const textColor = contrastColor(color)
     model.updateNode(id, { style: { ...model.getNode(id)?.style, backgroundColor: color, textColor } })

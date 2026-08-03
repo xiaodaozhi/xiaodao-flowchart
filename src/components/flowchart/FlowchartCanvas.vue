@@ -90,11 +90,12 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { FlowchartNode, FlowchartEdge, CanvasViewport, EdgeDrawingState, AnchorPosition, ResizeHandleId, NodeType } from '../../types'
-import { getAnchorDisplayPoint, getAnchorPoint } from '../../utils/anchorUtils'
-import { computeOrthogonalWaypoints, buildRoundedPath } from '../../utils/edgeRouting'
-import { snapToGrid } from '../../utils/geometry'
-import { useFlowchartContext } from '../../composables/useFlowchartContext'
+import './style/theme.css'
+import type { FlowchartNode, FlowchartEdge, CanvasViewport, EdgeDrawingState, AnchorPosition, ResizeHandleId, NodeType } from './types/index.ts'
+import { getAnchorDisplayPoint, getAnchorPoint } from './utils/anchorUtils'
+import { computeOrthogonalWaypoints, buildRoundedPath } from './utils/edgeRouting'
+import { snapToGrid } from './utils/geometry'
+import { useFlowchartContext } from './composables/useFlowchartContext.ts'
 import FlowchartEdgeCmp from './FlowchartEdge.vue'
 import FlowchartNodeCmp from './FlowchartNode.vue'
 import TextNodeEditorCmp from './TextNodeEditor.vue'

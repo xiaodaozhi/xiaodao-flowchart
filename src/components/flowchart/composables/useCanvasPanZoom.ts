@@ -1,7 +1,7 @@
 import { ref, unref, type Ref } from 'vue'
 import type { CanvasViewport, FlowchartNode } from '../types'
 import { MIN_ZOOM, MAX_ZOOM } from '../types'
-import { clamp } from '../utils/geometry'
+import { clamp } from '.././utils/geometry'
 
 const ZOOM_STEP = 1.08
 const EDGE_PAD = 100

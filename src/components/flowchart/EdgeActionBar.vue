@@ -22,7 +22,7 @@
               class="color-btn"
               :class="{ active: c === activeColor, 'is-default': c === defaultColor }"
               :style="{ backgroundColor: c }"
-              :title="c === defaultColor ? i18n.t('edge.defaultColor') : c"
+              :title="c === defaultColor ? i18n.colorName(c, true) : i18n.colorName(c, false)"
               @click="$emit('pickColor', c)"
             />
           </div>
@@ -59,9 +59,10 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from 'vue'
-import { EDGE_PRESET_COLORS, EDGE_DEFAULT_COLOR } from '../../utils/colorUtils'
-import { useFlowchartContext } from '../../composables/useFlowchartContext'
-import { createI18n } from '../../composables/useFlowchartI18n'
+import './style/theme.css'
+import { EDGE_PRESET_COLORS, EDGE_DEFAULT_COLOR } from './utils/colorUtils'
+import { useFlowchartContext } from './composables/useFlowchartContext'
+import { createI18n } from './composables/useFlowchartI18n'
 
 const props = defineProps<{
   visible: boolean
@@ -213,6 +214,7 @@ watch(() => props.visible, async (v) => {
 
 .color-btn.is-default {
   border-style: dashed;
+  background: transparent !important;
 }
 
 .separator {

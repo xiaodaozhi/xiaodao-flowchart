@@ -46,10 +46,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { NodeType, SidebarNodeTemplate } from '../../types'
+import './style/theme.css'
+import type { NodeType, SidebarNodeTemplate } from './types'
 import { inject } from 'vue'
-import { localeKey, mobileKey } from '../../composables/useFlowchartContext'
-import { createI18n } from '../../composables/useFlowchartI18n'
+import { localeKey, mobileKey } from './composables/useFlowchartContext'
+import { createI18n } from './composables/useFlowchartI18n'
 
 defineProps<{
   templates: SidebarNodeTemplate[]

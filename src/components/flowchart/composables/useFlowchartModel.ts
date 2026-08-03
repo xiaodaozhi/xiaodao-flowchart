@@ -1,6 +1,6 @@
 import { ref, watch, type Ref } from 'vue'
 import type { FlowchartData, FlowchartNode, FlowchartEdge, NodeType, AnchorPosition, NodeStyle, EdgeStyle } from '../types'
-import { generateId } from '../utils/idGenerator'
+import { generateId } from '.././utils/idGenerator'
 
 function deepClone<T>(data: T): T {
   return JSON.parse(JSON.stringify(data))

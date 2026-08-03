@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import type { CanvasViewport } from '../types'
-import { snapToGrid } from '../utils/geometry'
+import { snapToGrid } from '.././utils/geometry'
 import { GRID_SIZE } from '../types'
 
 export function useNodeDrag(

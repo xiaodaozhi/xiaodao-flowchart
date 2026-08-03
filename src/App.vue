@@ -9,14 +9,14 @@
       </span>
       <span v-if="selectedNodeId" class="toolbar-info"> 选中: {{ selectedNodeId }} </span>
     </div>
-    <FlowchartContainer v-model="data" :theme="'light'" :locale="'en-US'" @node-select="onNodeSelect" @node-dbl-click="onNodeDblClick" />
+    <FlowchartContainer v-model="data" :theme="'dark'" :locale="'en-US'" @node-select="onNodeSelect" @node-dbl-click="onNodeDblClick" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import FlowchartContainer from './components/flowchart/FlowchartContainer.vue'
-import type { FlowchartData } from './types'
+import type { FlowchartData } from './components/flowchart/types/index.ts'
 
 const data = ref<FlowchartData>({ nodes: [], edges: [] })
 const selectedNodeId = ref<string | null>(null)

@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { FlowchartNode, CanvasViewport, ResizeHandleId } from '../../types'
+import type { FlowchartNode, CanvasViewport, ResizeHandleId } from './types'
 
 const props = defineProps<{
   node: FlowchartNode

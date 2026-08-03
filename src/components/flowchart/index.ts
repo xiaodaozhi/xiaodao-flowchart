@@ -10,4 +10,4 @@ export type {
   SidebarNodeTemplate,
   Theme,
   Locale,
-} from '../../types'
+} from './types/index.ts'

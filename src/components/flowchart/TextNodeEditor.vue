@@ -15,7 +15,8 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, nextTick } from 'vue'
-import type { CanvasViewport } from '../../types'
+import './style/theme.css'
+import type { CanvasViewport } from './types'
 
 const props = defineProps<{
   cx: number

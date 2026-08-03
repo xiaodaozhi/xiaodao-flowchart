@@ -11,7 +11,7 @@
       :x="node.x" :y="node.y"
       :width="node.width" :height="node.height"
       :rx="node.style?.borderRadius ?? 4"
-      :fill="node.style?.backgroundColor ?? 'var(--fc-node-default-fill)'"
+      :fill="resolvedBgColor"
       :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
       :stroke-width="node.style?.borderWidth ?? 2"
       :opacity="node.style?.opacity ?? 1"
@@ -21,7 +21,7 @@
     <polygon
       v-if="node.type === 'diamond'"
       :points="diamondPoints"
-      :fill="node.style?.backgroundColor ?? 'var(--fc-node-default-fill)'"
+      :fill="resolvedBgColor"
       :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
       :stroke-width="node.style?.borderWidth ?? 2"
       :opacity="node.style?.opacity ?? 1"
@@ -32,7 +32,7 @@
       v-if="node.type === 'ellipse'"
       :cx="cx" :cy="cy"
       :rx="node.width / 2" :ry="node.height / 2"
-      :fill="node.style?.backgroundColor ?? 'var(--fc-node-default-fill)'"
+      :fill="resolvedBgColor"
       :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
       :stroke-width="node.style?.borderWidth ?? 2"
       :opacity="node.style?.opacity ?? 1"
@@ -42,7 +42,7 @@
     <polygon
       v-if="node.type === 'parallelogram'"
       :points="parallelogramPoints"
-      :fill="node.style?.backgroundColor ?? 'var(--fc-node-default-fill)'"
+      :fill="resolvedBgColor"
       :stroke="node.style?.borderColor ?? 'var(--fc-node-default-stroke)'"
       :stroke-width="node.style?.borderWidth ?? 2"
       :opacity="node.style?.opacity ?? 1"
@@ -79,7 +79,7 @@
           justifyContent: 'center',
           textAlign: 'center',
           fontSize: (node.style?.fontSize ?? 14) + 'px',
-          color: node.style?.textColor ?? 'var(--fc-node-default-text)',
+          color: resolvedTextColor,
           opacity: node.style?.opacity ?? 1,
           lineHeight: ((node.style?.fontSize ?? 14) + 4) + 'px',
           wordBreak: 'break-word',
@@ -110,7 +110,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { FlowchartNode, AnchorPosition, CanvasViewport } from '../../types'
+import './style/theme.css'
+import type { FlowchartNode, AnchorPosition, CanvasViewport } from './types/index.ts'
+import { useFlowchartContext } from './composables/useFlowchartContext.ts'
+import { contrastColor } from './utils/colorUtils'
 import AnchorPoints from './AnchorPoints.vue'
 import ResizeHandles from './ResizeHandles.vue'
 
@@ -127,6 +130,21 @@ const props = defineProps<{
 defineEmits<{
   dblClick: [nodeId: string]
 }>()
+
+const { theme: currentTheme } = useFlowchartContext()
+
+const lightDefaultFill = '#fff'
+const darkDefaultFill = '#3a3a3a'
+
+const resolvedBgColor = computed(() => {
+  if (props.node.style?.backgroundColor) return props.node.style.backgroundColor
+  return currentTheme === 'dark' ? darkDefaultFill : lightDefaultFill
+})
+
+const resolvedTextColor = computed(() => {
+  if (props.node.style?.textColor) return props.node.style.textColor
+  return contrastColor(resolvedBgColor.value)
+})
 
 const skew = computed(() => Math.min(15, props.node.width * 0.15))
 const cx = computed(() => props.node.x + props.node.width / 2)

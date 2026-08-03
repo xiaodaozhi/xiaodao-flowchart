@@ -17,8 +17,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { FlowchartNode, AnchorPosition, CanvasViewport } from '../../types'
-import { getAnchorDisplayPoint } from '../../utils/anchorUtils'
+import type { FlowchartNode, AnchorPosition, CanvasViewport } from './types'
+import { getAnchorDisplayPoint } from './utils/anchorUtils'
 
 const props = defineProps<{
   node: FlowchartNode
