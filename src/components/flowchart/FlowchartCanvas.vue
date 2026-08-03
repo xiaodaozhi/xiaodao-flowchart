@@ -22,7 +22,7 @@
           <circle cx="0" cy="0" r="1.0" fill="#D0D0D0" />
         </pattern>
         <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
-          <polygon points="0 0, 10 3.5, 0 7" fill="#555" />
+          <polygon points="0 0, 10 3.5, 0 7" fill="context-stroke" />
         </marker>
       </defs>
 
@@ -127,9 +127,6 @@ const gridScreenPx = computed(() => BASE * gridLevel.value * props.viewport.zoom
 const panOffX = computed(() => props.viewport.panX % gridScreenPx.value)
 const panOffY = computed(() => props.viewport.panY % gridScreenPx.value)
 
-function subPanX(level: number) { return props.viewport.panX % (gridScreenPx.value / level) }
-function subPanY(level: number) { return props.viewport.panY % (gridScreenPx.value / level) }
-
 const showSub2x  = computed(() => props.viewport.zoom >= 2)
 const showSub5x  = computed(() => props.viewport.zoom >= 5)
 const showSub10x = computed(() => props.viewport.zoom >= 10)
@@ -173,6 +170,8 @@ const wrapperRef = ref<HTMLElement | null>(null)
 const hoveredNodeId = ref<string | null>(null)
 const hoveredAnchor = ref<AnchorPosition | null>(null)
 const tempEdgePath = ref<string>('')
+const isDraggingEdgeHandle = ref(false)
+const edgeHandleDragEdgeId = ref<string | null>(null)
 
 const cursorStyle = computed(() => {
   if (drag.type === 'pan') return 'grabbing'
@@ -200,6 +199,7 @@ function getEdgeTargetPoint(edge: FlowchartEdge) {
 function shouldShowAnchors(nodeId: string): boolean {
   if (nodeId === props.selectedNodeId) return true
   if (props.drawingState?.active && nodeId !== props.drawingState.sourceNodeId) return true
+  if (isDraggingEdgeHandle.value) return true
   return false
 }
 
@@ -274,6 +274,8 @@ function onPointerDown(event: PointerEvent) {
     const eid = eh.getAttribute('data-edge-id')!
     const hnd = eh.getAttribute('data-edge-handle')! as 'source' | 'target'
     drag = { type: 'edgeHandle', edgeId: eid, handle: hnd, startPX: event.clientX, startPY: event.clientY }
+    isDraggingEdgeHandle.value = true
+    edgeHandleDragEdgeId.value = eid
     svgRef.value!.setPointerCapture(event.pointerId)
     event.preventDefault(); return
   }
@@ -334,9 +336,11 @@ function onPointerMove(event: PointerEvent) {
   }
 
   if (drag.type === 'edgeHandle') {
+    const edgeId = drag.edgeId
+    const handle = drag.handle
     let bn: string | null = null, ba: AnchorPosition | null = null, bd = Infinity
     for (const n of props.nodes) {
-      if (props.edges.find(e => e.id === drag.edgeId) && (n.id === props.edges.find(e => e.id === drag.edgeId)!.sourceNodeId || n.id === props.edges.find(e => e.id === drag.edgeId)!.targetNodeId)) {
+      if (props.edges.find(e => e.id === edgeId) && (n.id === props.edges.find(e => e.id === edgeId)!.sourceNodeId || n.id === props.edges.find(e => e.id === edgeId)!.targetNodeId)) {
         // Check if the other endpoint is anchored to this node; don't restrict further
       }
       for (const a of ['top','right','bottom','left'] as AnchorPosition[]) {
@@ -345,22 +349,17 @@ function onPointerMove(event: PointerEvent) {
       }
     }
     hoveredNodeId.value = bn; hoveredAnchor.value = ba
-    // Draw temp edge path
-    if (bn && ba) {
-      const edge = props.edges.find(e => e.id === drag.edgeId)
-      if (edge) {
-        const srcNode = getNode(drag.handle === 'source' ? bn : edge.sourceNodeId)
-        const tgtNode = getNode(drag.handle === 'target' ? bn : edge.targetNodeId)
-        const srcAnchor = drag.handle === 'source' ? ba : edge.sourceAnchor
-        const tgtAnchor = drag.handle === 'target' ? ba : edge.targetAnchor
-        if (srcNode && tgtNode) {
-          const s = getAnchorPoint(srcNode, srcAnchor)
-          const t = getAnchorPoint(tgtNode, tgtAnchor)
-          tempEdgePath.value = buildRoundedPath(computeOrthogonalWaypoints(s, srcAnchor, t, tgtAnchor), 0)
-        }
+    // Draw temp edge path: always show dashed line following mouse
+    const edge = props.edges.find(e => e.id === edgeId)
+    if (edge) {
+      const fixedNode = getNode(handle === 'source' ? edge.targetNodeId : edge.sourceNodeId)
+      const fixedAnchor = handle === 'source' ? edge.targetAnchor : edge.sourceAnchor
+      if (fixedNode) {
+        const s = getAnchorPoint(fixedNode, fixedAnchor)
+        const tgtAnchor: AnchorPosition = bn && ba ? ba : (fixedAnchor === 'top' ? 'bottom' : fixedAnchor === 'bottom' ? 'top' : fixedAnchor === 'left' ? 'right' : 'left')
+        const t = bn && ba ? getAnchorPoint(getNode(bn)!, ba) : pc
+        tempEdgePath.value = buildRoundedPath(computeOrthogonalWaypoints(s, fixedAnchor, t, tgtAnchor), 0)
       }
-    } else {
-      tempEdgePath.value = ''
     }
     return
   }
@@ -437,6 +436,8 @@ function onPointerUp(event: PointerEvent) {
     tempEdgePath.value = ''
     hoveredNodeId.value = null
     hoveredAnchor.value = null
+    isDraggingEdgeHandle.value = false
+    edgeHandleDragEdgeId.value = null
     drag = { type: 'none' }
     svgRef.value?.releasePointerCapture(event.pointerId)
     return

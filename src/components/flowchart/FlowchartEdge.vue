@@ -22,6 +22,7 @@
       :stroke-width="edge.style?.strokeWidth ?? 2"
       stroke-linecap="round"
       marker-end="url(#arrowhead)"
+      class="edge-path"
     />
     <!-- Edge label -->
     <text

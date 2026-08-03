@@ -85,7 +85,7 @@ const sidebar = useDragFromSidebar(model.addNode)
 const { templates } = sidebar
 
 const panZoom = useCanvasPanZoom(computed(() => internalData.value.nodes))
-const { viewport, handleWheel, screenToCanvas, clampPan } = panZoom
+const { viewport, handleWheel } = panZoom
 
 const edgeDrawing = useEdgeDrawing(model.addEdge)
 const { drawingState, startDrawing, updateDrawing, finishDrawing, cancelDrawing, isDrawing } = edgeDrawing
