@@ -127,33 +127,33 @@ function safeCrossCoord(axis: 'x' | 'y', a: number, b: number, pair: ZonePair): 
   }
   if (!blocked) return mid;
 
+  // intervals is non-empty after early return above
+  const first = intervals[0]!;
+  const last = intervals[intervals.length - 1]!;
+
   // Midpoint is blocked — find a path: go above the lowest interval or below the highest
   // Prefer going above (closer to the source-direction exit)
-  const lowestMin = intervals[0].min;
-  if (rangeMin < lowestMin) {
-    const gap = Math.max(rangeMin + EXIT_MARGIN, (rangeMin + lowestMin) / 2);
-    if (gap < lowestMin) return gap;
+  if (rangeMin < first.min) {
+    const gap = Math.max(rangeMin + EXIT_MARGIN, (rangeMin + first.min) / 2);
+    if (gap < first.min) return gap;
   }
 
-  const highestMax = intervals[intervals.length - 1].max;
-  if (rangeMax > highestMax) {
-    const gap = Math.min(rangeMax - EXIT_MARGIN, (rangeMax + highestMax) / 2);
-    if (gap > highestMax) return gap;
+  if (rangeMax > last.max) {
+    const gap = Math.min(rangeMax - EXIT_MARGIN, (rangeMax + last.max) / 2);
+    if (gap > last.max) return gap;
   }
 
   // Also check gaps between intervals
   for (let i = 1; i < intervals.length; i++) {
-    const prevMax = intervals[i - 1].max;
-    const nextMin = intervals[i].min;
+    const prevMax = intervals[i - 1]!.max;
+    const nextMin = intervals[i]!.min;
     if (nextMin - prevMax > EXIT_MARGIN * 2) {
       return (prevMax + nextMin) / 2;
     }
   }
 
   // Fallback: pick the nearer edge of the combined forbidden range
-  const allMin = intervals[0].min;
-  const allMax = intervals[intervals.length - 1].max;
-  return (mid - allMin) <= (allMax - mid) ? allMin : allMax;
+  return (mid - first.min) <= (last.max - mid) ? first.min : last.max;
 }
 
 // ─── Routing ────────────────────────────────────────────────────────────
@@ -415,8 +415,8 @@ function avoidThirdPartyNodes(
     const hit = findFirstBlockedSegment(result, toAvoid);
     if (!hit) return result;
 
-    const a = result[hit.segmentEndIndex - 1];
-    const b = result[hit.segmentEndIndex];
+    const a = result[hit.segmentEndIndex - 1]!;
+    const b = result[hit.segmentEndIndex]!;
     const detour = routeAroundNode(a, b, hit.node);
     result = cleanPath([
       ...result.slice(0, hit.segmentEndIndex),
@@ -433,8 +433,8 @@ function routeAroundAllNodes(
   sourceAnchor: AnchorPosition,
   targetAnchor: AnchorPosition,
 ): Point[] | null {
-  const source = points[0];
-  const target = points[points.length - 1];
+  const source = points[0]!;
+  const target = points[points.length - 1]!;
   const startExit = chooseEndpoint(source, points[1], sourceAnchor, nodes, 'source');
   const endExit = chooseEndpoint(target, points[points.length - 2], targetAnchor, nodes, 'target');
 
@@ -509,11 +509,11 @@ function findGridRoute(
   const edges = new Map<string, { key: string; dir: 'h' | 'v'; cost: number }[]>();
   for (const y of uniqueSorted(ys)) {
     const row = uniqueSorted(xs).map((x) => ({ x, y })).filter((p) => valid.has(pointKey(p)));
-    for (let i = 1; i < row.length; i++) addGridEdge(row[i - 1], row[i], 'h', nodes, edges);
+    for (let i = 1; i < row.length; i++) addGridEdge(row[i - 1]!, row[i]!, 'h', nodes, edges);
   }
   for (const x of uniqueSorted(xs)) {
     const col = uniqueSorted(ys).map((y) => ({ x, y })).filter((p) => valid.has(pointKey(p)));
-    for (let i = 1; i < col.length; i++) addGridEdge(col[i - 1], col[i], 'v', nodes, edges);
+    for (let i = 1; i < col.length; i++) addGridEdge(col[i - 1]!, col[i]!, 'v', nodes, edges);
   }
 
   return runShortestPath(startKey, endKey, pointByKey, edges, endDir);
@@ -550,7 +550,7 @@ function runShortestPath(
   const dist = new Map<string, number>();
   const prev = new Map<string, string>();
   const queue: { state: State; cost: number }[] = [{ state: { key: startKey, dir: 'start' }, cost: 0 }];
-  dist.set(stateKey(queue[0].state), 0);
+  dist.set(stateKey(queue[0]!.state), 0);
 
   let finalState: string | null = null;
   while (queue.length > 0) {
@@ -579,7 +579,7 @@ function runShortestPath(
 
   const keys: string[] = [];
   for (let key: string | undefined = finalState; key; key = prev.get(key)) {
-    keys.push(key.split('|')[0]);
+    keys.push(key.split('|')[0]!);
   }
   keys.reverse();
   return cleanPath(keys.map((key) => pointByKey.get(key)!));
@@ -593,8 +593,8 @@ interface SegmentHit {
 
 function findFirstBlockedSegment(points: Point[], nodes: NodeRect[]): SegmentHit | null {
   for (let i = 1; i < points.length; i++) {
-    const a = points[i - 1];
-    const b = points[i];
+    const a = points[i - 1]!;
+    const b = points[i]!;
     let nearest: SegmentHit | null = null;
     for (const node of nodes) {
       const distance = segmentNodeHitDistance(a, b, node);
@@ -693,9 +693,9 @@ function cleanPath(points: Point[]): Point[] {
   for (const point of cleaned) {
     simplified.push(point);
     while (simplified.length >= 3) {
-      const a = simplified[simplified.length - 3];
-      const b = simplified[simplified.length - 2];
-      const c = simplified[simplified.length - 1];
+      const a = simplified[simplified.length - 3]!;
+      const b = simplified[simplified.length - 2]!;
+      const c = simplified[simplified.length - 1]!;
       if ((isHSeg(a, b) && isHSeg(b, c)) || (isVSeg(a, b) && isVSeg(b, c))) {
         simplified.splice(simplified.length - 2, 1);
       } else {
@@ -724,14 +724,15 @@ function isVSeg(a: Point, b: Point): boolean {
 }
 
 export function buildRoundedPath(points: Point[], _cornerRadius: number): string {
-  const cleaned: Point[] = [points[0]];
+  if (points.length === 0) return '';
+  const cleaned: Point[] = [points[0]!];
   for (let i = 1; i < points.length; i++) {
-    const prev = cleaned[cleaned.length - 1];
-    if (points[i].x !== prev.x || points[i].y !== prev.y) cleaned.push(points[i]);
+    const prev = cleaned[cleaned.length - 1]!;
+    if (points[i]!.x !== prev.x || points[i]!.y !== prev.y) cleaned.push(points[i]!);
   }
   if (cleaned.length < 2) return '';
-  let d = `M ${cleaned[0].x} ${cleaned[0].y}`;
-  for (let i = 1; i < cleaned.length; i++) d += ` L ${cleaned[i].x} ${cleaned[i].y}`;
+  let d = `M ${cleaned[0]!.x} ${cleaned[0]!.y}`;
+  for (let i = 1; i < cleaned.length; i++) d += ` L ${cleaned[i]!.x} ${cleaned[i]!.y}`;
   return d;
 }
 

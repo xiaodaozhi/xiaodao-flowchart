@@ -42,7 +42,7 @@ export function useFlowchartModel(
     const newData = deepClone(internalData.value);
     const idx = newData.nodes.findIndex((n) => n.id === id);
     if (idx !== -1) {
-      newData.nodes[idx] = { ...newData.nodes[idx], ...changes };
+      newData.nodes[idx] = { ...newData.nodes[idx], ...changes } as FlowchartNode;
       commit(newData);
     }
   }

@@ -119,8 +119,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import './style/theme.css';
-import type { FlowchartNode, AnchorPosition, CanvasViewport } from './types/index.ts';
-import { useFlowchartContext } from './composables/useFlowchartContext.ts';
+import type { FlowchartNode, AnchorPosition, CanvasViewport } from './types/index';
+import { useFlowchartContext } from './composables/useFlowchartContext';
 import { contrastColor } from './utils/colorUtils';
 import AnchorPoints from './AnchorPoints.vue';
 import ResizeHandles from './ResizeHandles.vue';
