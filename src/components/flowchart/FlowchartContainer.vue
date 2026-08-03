@@ -2,6 +2,7 @@
   <div
     class="flowchart-container"
     :class="{ 'theme-dark': resolvedTheme === 'dark' }"
+    :style="{ width: resolvedWidth, height: resolvedHeight }"
     tabindex="0"
     @drop.prevent
     @dragover.prevent
@@ -76,11 +77,23 @@ const props = defineProps<{
   theme?: Theme;
   locale?: Locale;
   mobile?: boolean;
+  width?: string | number;
+  height?: string | number;
 }>();
 
 const resolvedTheme = computed(() => props.theme ?? 'light');
 const resolvedLocale = computed(() => props.locale ?? 'zh-CN');
 const resolvedMobile = computed(() => props.mobile ?? false);
+const resolvedWidth = computed(() => {
+  const w = props.width;
+  if (w === undefined || w === null) return undefined;
+  return typeof w === 'number' ? `${w}px` : w;
+});
+const resolvedHeight = computed(() => {
+  const h = props.height;
+  if (h === undefined || h === null) return undefined;
+  return typeof h === 'number' ? `${h}px` : h;
+});
 
 provide(themeKey, resolvedTheme);
 provide(localeKey, resolvedLocale);
