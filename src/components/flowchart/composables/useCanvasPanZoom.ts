@@ -75,8 +75,8 @@ export function useCanvasPanZoom(nodesRef: Ref<FlowchartNode[]>) {
   }
 
   function resetView() {
-  viewport.value = { panX: 0, panY: 0, zoom: 1 };
-}
+    viewport.value = { panX: 0, panY: 0, zoom: 1 };
+  }
 
   function clampPan(containerWidth: number, containerHeight: number) {
     applyPanClamp(viewport.value.zoom, containerWidth, containerHeight);
