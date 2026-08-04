@@ -87,6 +87,23 @@ function cornerSafe(corner: Point, p1: Point, pN: Point, pair: ZonePair): boolea
   return !segHitsEither(p1, corner, pair) && !segHitsEither(corner, pN, pair);
 }
 
+function pathSafe(points: Point[], pair: ZonePair): boolean {
+  for (let i = 1; i < points.length; i++) {
+    if (segHitsEither(points[i - 1]!, points[i]!, pair)) return false;
+  }
+  return true;
+}
+
+function pathLength(points: Point[]): number {
+  let length = 0;
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1]!;
+    const b = points[i]!;
+    length += Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+  }
+  return length;
+}
+
 /**
  * Find a coordinate on the given axis that:
  * 1. Lies between `a` and `b` (preferably midpoint)
@@ -335,7 +352,7 @@ function hToV(paths: Point[], p1: Point, pN: Point, srcDir: Point, z: ZonePair) 
     return;
   }
   // Need full detour
-  detourHV(paths, p1, pN, srcDir, 'h', z);
+  detourHV(paths, p1, pN, 'h', z);
 }
 
 // ─── Vertical → Horizontal ──────────────────────────────────────────────
@@ -367,7 +384,7 @@ function vToH(paths: Point[], p1: Point, pN: Point, srcDir: Point, z: ZonePair) 
     return;
   }
   // Need full detour
-  detourHV(paths, p1, pN, srcDir, 'v', z);
+  detourHV(paths, p1, pN, 'v', z);
 }
 
 // ─── Full detour when simple corner doesn't work ────────────────────────
@@ -379,12 +396,10 @@ function vToH(paths: Point[], p1: Point, pN: Point, srcDir: Point, z: ZonePair) 
  */
 function detourHV(
   paths: Point[], p1: Point, pN: Point,
-  srcDir: Point, srcType: 'h' | 'v', z: ZonePair,
+  srcType: 'h' | 'v', z: ZonePair,
 ) {
-  const sc = srcType === 'h' ? 'x' : 'y';
   const pc = srcType === 'h' ? 'y' : 'x';
 
-  // Determine escape side perpendicularly (pick side closer to pN)
   const zMin = Math.min(
     z.src.empty ? Infinity : z.src[pc + 'Min' as 'xMin' | 'yMin'],
     z.tgt.empty ? Infinity : z.tgt[pc + 'Min' as 'xMin' | 'yMin'],
@@ -393,30 +408,19 @@ function detourHV(
     z.src.empty ? -Infinity : z.src[pc + 'Max' as 'xMax' | 'yMax'],
     z.tgt.empty ? -Infinity : z.tgt[pc + 'Max' as 'xMax' | 'yMax'],
   );
-  const mid = (zMin + zMax) / 2;
-  const goMin = (pN[pc] as number) < mid;
-  const perpEscape = goMin ? zMin - EXIT_MARGIN : zMax + EXIT_MARGIN;
 
-  // Go past forbidden zone in source direction
-  const srcMin = Math.min(
-    z.src.empty ? Infinity : z.src[sc + 'Min' as 'xMin' | 'yMin'],
-    z.tgt.empty ? Infinity : z.tgt[sc + 'Min' as 'xMin' | 'yMin'],
-  );
-  const srcMax = Math.max(
-    z.src.empty ? -Infinity : z.src[sc + 'Max' as 'xMax' | 'yMax'],
-    z.tgt.empty ? -Infinity : z.tgt[sc + 'Max' as 'xMax' | 'yMax'],
-  );
-  const srcPast = srcDir[sc] > 0 ? srcMax + EXIT_MARGIN : srcMin - EXIT_MARGIN;
+  const escapeCoords = [zMin - EXIT_MARGIN, zMax + EXIT_MARGIN];
+  const candidates = escapeCoords.map((perpEscape) => {
+    return srcType === 'h'
+      ? [{ x: p1.x, y: perpEscape }, { x: pN.x, y: perpEscape }]
+      : [{ x: perpEscape, y: p1.y }, { x: perpEscape, y: pN.y }];
+  });
 
-  if (srcType === 'h') {
-    paths.push({ x: p1.x, y: perpEscape });
-    paths.push({ x: srcPast, y: perpEscape });
-    paths.push({ x: srcPast, y: pN.y });
-  } else {
-    paths.push({ x: perpEscape, y: p1.y });
-    paths.push({ x: perpEscape, y: srcPast });
-    paths.push({ x: pN.x, y: srcPast });
-  }
+  const safeCandidates = candidates.filter((candidate) => pathSafe([p1, ...candidate, pN], z));
+  const [best] = (safeCandidates.length > 0 ? safeCandidates : candidates)
+    .sort((a, b) => pathLength([p1, ...a, pN]) - pathLength([p1, ...b, pN]));
+
+  paths.push(...best!);
 }
 
 // ─── Third-party node avoidance ─────────────────────────────────────────
