@@ -307,6 +307,13 @@ function hToV(paths: Point[], p1: Point, pN: Point, srcDir: Point, z: ZonePair) 
     paths.push(corner);
     return;
   }
+
+  const alternateCorner: Point = { x: p1.x, y: pN.y };
+  if (cornerSafe(alternateCorner, p1, pN, z)) {
+    paths.push(alternateCorner);
+    return;
+  }
+
   // Try extend then corner: go further in src direction, then L-turn
   const extX = p1.x + srcDir.x * EXIT_MARGIN;
   const c2: Point = { x: extX, y: pN.y };
@@ -332,6 +339,13 @@ function vToH(paths: Point[], p1: Point, pN: Point, srcDir: Point, z: ZonePair) 
     paths.push(corner);
     return;
   }
+
+  const alternateCorner: Point = { x: pN.x, y: p1.y };
+  if (cornerSafe(alternateCorner, p1, pN, z)) {
+    paths.push(alternateCorner);
+    return;
+  }
+
   // Try extend then corner: go further in src direction, then L-turn
   const extY = p1.y + srcDir.y * EXIT_MARGIN;
   const c2: Point = { x: pN.x, y: extY };

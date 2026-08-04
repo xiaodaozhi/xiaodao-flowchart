@@ -3,6 +3,8 @@ export type {
   FlowchartData,
   FlowchartNode,
   FlowchartEdge,
+  FreeLine,
+  FreeLineStyle,
   NodeType,
   AnchorPosition,
   NodeStyle,

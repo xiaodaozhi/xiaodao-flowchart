@@ -1,5 +1,5 @@
 import { ref, watch, type Ref } from 'vue';
-import type { FlowchartData, FlowchartNode, FlowchartEdge, NodeType, AnchorPosition, NodeStyle, EdgeStyle } from '../types';
+import type { FlowchartData, FlowchartNode, FlowchartEdge, FreeLine, FreeLineStyle, NodeType, AnchorPosition, NodeStyle, EdgeStyle } from '../types';
 import { generateId } from '.././utils/idGenerator';
 
 function deepClone<T>(data: T): T {
@@ -161,6 +161,50 @@ export function useFlowchartModel(
     return internalData.value.edges.find((e) => e.id === id);
   }
 
+  function addFreeLine(x1: number, y1: number, x2: number, y2: number): string {
+    const newData = deepClone(internalData.value);
+    const lines = newData.freeLines ?? [];
+    const line: FreeLine = { id: generateId(), x1, y1, x2, y2 };
+    newData.freeLines = [...lines, line];
+    commit(newData);
+    return line.id;
+  }
+
+  function removeFreeLine(id: string) {
+    const newData = deepClone(internalData.value);
+    if (newData.freeLines) {
+      newData.freeLines = newData.freeLines.filter((fl) => fl.id !== id);
+    }
+    commit(newData);
+  }
+
+  function updateFreeLineStyle(id: string, style: FreeLineStyle) {
+    const newData = deepClone(internalData.value);
+    if (newData.freeLines) {
+      const fl = newData.freeLines.find((f) => f.id === id);
+      if (fl) {
+        fl.style = { ...fl.style, ...style };
+      }
+    }
+    commit(newData);
+  }
+
+  function getFreeLine(id: string): FreeLine | undefined {
+    return internalData.value.freeLines?.find((fl) => fl.id === id);
+  }
+
+  function moveFreeLine(id: string, x1: number, y1: number, x2: number, y2: number) {
+    const newData = deepClone(internalData.value);
+    if (newData.freeLines) {
+      const fl = newData.freeLines.find((f) => f.id === id);
+      if (fl) {
+        fl.x1 = x1; fl.y1 = y1;
+        fl.x2 = x2; fl.y2 = y2;
+      }
+    }
+    commit(newData);
+  }
+
   return {
     internalData,
     addNode,
@@ -177,5 +221,10 @@ export function useFlowchartModel(
     updateEdgeStyle,
     getNode,
     getEdge,
+    addFreeLine,
+    removeFreeLine,
+    updateFreeLineStyle,
+    getFreeLine,
+    moveFreeLine,
   };
 }

@@ -129,6 +129,54 @@
             :all-nodes="edgeRoutingNodes"
             @click="(eid: string) => emit('edgeClick', eid)"
           />
+          <!-- Free lines -->
+          <g
+            v-for="fl in freeLines"
+            :key="fl.id"
+            :data-freeline-id="fl.id"
+          >
+            <!-- Hit area (wider invisible line) -->
+            <line
+              :x1="fl.x1"
+              :y1="fl.y1"
+              :x2="fl.x2"
+              :y2="fl.y2"
+              stroke="transparent"
+              :stroke-width="(fl.style?.strokeWidth ?? 2) + 8"
+              stroke-linecap="round"
+              style="cursor: pointer;"
+            />
+            <!-- Visible line -->
+            <line
+              :x1="fl.x1"
+              :y1="fl.y1"
+              :x2="fl.x2"
+              :y2="fl.y2"
+              :stroke="fl.style?.strokeColor ?? '#555'"
+              :stroke-width="fl.id === selectedFreeLineId ? (fl.style?.strokeWidth ?? 2) * 1.5 : (fl.style?.strokeWidth ?? 2)"
+              stroke-linecap="round"
+              :style="{ cursor: 'pointer', transition: 'stroke-width 0.1s' }"
+            />
+            <!-- Endpoint handles when selected -->
+            <template v-if="fl.id === selectedFreeLineId">
+              <circle
+                :cx="fl.x1"
+                :cy="fl.y1"
+                r="5"
+                fill="#4A90D9"
+                stroke="#fff"
+                stroke-width="2"
+              />
+              <circle
+                :cx="fl.x2"
+                :cy="fl.y2"
+                r="5"
+                fill="#4A90D9"
+                stroke="#fff"
+                stroke-width="2"
+              />
+            </template>
+          </g>
         </g>
         <g
           v-if="drawingState?.active"
@@ -201,6 +249,17 @@
           stroke-linecap="round"
           stroke-dasharray="6,3"
         />
+        <line
+          v-if="freeLineDrawPath"
+          :x1="freeLineDrawX1"
+          :y1="freeLineDrawY1"
+          :x2="freeLineDrawX2"
+          :y2="freeLineDrawY2"
+          stroke="#4A90D9"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-dasharray="6,3"
+        />
       </g>
     </svg>
     <TextNodeEditorCmp
@@ -219,9 +278,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import './style/theme.css';
-import type { FlowchartNode, FlowchartEdge, CanvasViewport, EdgeDrawingState, AnchorPosition, ResizeHandleId, NodeType } from './types/index.ts';
+import type { FlowchartNode, FlowchartEdge, FreeLine, CanvasViewport, EdgeDrawingState, AnchorPosition, ResizeHandleId, NodeType } from './types/index.ts';
 import { getAnchorDisplayPoint, getAnchorPoint } from './utils/anchorUtils';
 import { computeOrthogonalWaypoints, buildRoundedPath } from './utils/edgeRouting';
 import { snapToGrid } from './utils/geometry';
@@ -235,8 +294,9 @@ const { theme: currentTheme } = useFlowchartContext();
 const BASE = 15;
 
 const props = defineProps<{
-  nodes: FlowchartNode[]; edges: FlowchartEdge[]; viewport: CanvasViewport;
-  selectedNodeId: string | null; selectedEdgeId: string | null;
+  nodes: FlowchartNode[]; edges: FlowchartEdge[]; freeLines: FreeLine[]; viewport: CanvasViewport;
+  selectedNodeId: string | null; selectedEdgeId: string | null; selectedFreeLineId: string | null;
+  lineToolActive: boolean;
   drawingState: EdgeDrawingState | null;
   editingNodeId: string | null;
   editingInfo: { cx: number; cy: number; width: number; text: string; fontSize: number } | null;
@@ -286,11 +346,16 @@ type DragState
     | { type: 'resize'; nodeId: string; handle: ResizeHandleId; pnx: number; pny: number; nx: number; ny: number; nw: number; nh: number }
     | { type: 'drawing'; sourceNodeId: string; sourceAnchor: AnchorPosition }
     | { type: 'pan'; startPX: number; startPY: number; startPanX: number; startPanY: number }
-    | { type: 'edgeHandle'; edgeId: string; handle: 'source' | 'target'; startPX: number; startPY: number };
+    | { type: 'edgeHandle'; edgeId: string; handle: 'source' | 'target'; startPX: number; startPY: number }
+    | { type: 'freeLine'; startX: number; startY: number }
+    | { type: 'freeLineMove'; freeLineId: string; startX1: number; startY1: number; startX2: number; startY2: number; startPX: number; startPY: number };
 
 const emit = defineEmits<{
   canvasClick: []; nodeClick: [nodeId: string]; nodeDblClick: [nodeId: string];
   edgeClick: [edgeId: string];
+  freeLineClick: [freeLineId: string];
+  freeLineDraw: [x1: number, y1: number, x2: number, y2: number];
+  freeLineMove: [freeLineId: string, x1: number, y1: number, x2: number, y2: number];
   panMove: [panX: number, panY: number];
   nodeDragMove: [nodeId: string, x: number, y: number];
   nodeResize: [nodeId: string, x: number, y: number, w: number, h: number];
@@ -303,6 +368,25 @@ const emit = defineEmits<{
   edgeReroute: [edgeId: string, handle: 'source' | 'target', targetNodeId: string, targetAnchor: AnchorPosition];
 }>();
 
+onMounted(() => {
+  const w = wrapperRef.value;
+  if (!w || props.nodes.length === 0) return;
+  const r = w.getBoundingClientRect();
+  if (r.width === 0 || r.height === 0) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const n of props.nodes) {
+    if (n.x < minX) minX = n.x;
+    if (n.y < minY) minY = n.y;
+    if (n.x + n.width > maxX) maxX = n.x + n.width;
+    if (n.y + n.height > maxY) maxY = n.y + n.height;
+  }
+  const z = props.viewport.zoom;
+  const panX = r.width / 2 - ((minX + maxX) / 2) * z;
+  const panY = r.height / 2 - ((minY + maxY) / 2) * z;
+  emit('panMove', panX, panY);
+});
+
 const svgRef = ref<SVGSVGElement | null>(null);
 const wrapperRef = ref<HTMLElement | null>(null);
 const hoveredNodeId = ref<string | null>(null);
@@ -310,11 +394,17 @@ const hoveredAnchor = ref<AnchorPosition | null>(null);
 const tempEdgePath = ref<string>('');
 const isDraggingEdgeHandle = ref(false);
 const edgeHandleDragEdgeId = ref<string | null>(null);
+const freeLineDrawPath = ref<string>('');
+const freeLineDrawX1 = ref(0);
+const freeLineDrawY1 = ref(0);
+const freeLineDrawX2 = ref(0);
+const freeLineDrawY2 = ref(0);
 
 const cursorStyle = computed(() => {
   if (drag.type === 'pan') return 'grabbing';
   if (drag.type === 'node' || drag.type === 'clickPending') return 'move';
   if (drag.type === 'resize') return 'default';
+  if (props.lineToolActive) return 'crosshair';
   return 'default';
 });
 
@@ -442,6 +532,28 @@ function onPointerDown(event: PointerEvent) {
     return;
   }
 
+  const fl = t.closest('[data-freeline-id]');
+  if (fl) {
+    const flid = fl.getAttribute('data-freeline-id')!;
+    const line = props.freeLines.find((l) => l.id === flid);
+    if (line) {
+      // Start a free-line move drag; also select it
+      emit('freeLineClick', flid);
+      const mx = snapToGrid(pc.x, snapSize.value);
+      const my = snapToGrid(pc.y, snapSize.value);
+      drag = {
+        type: 'freeLineMove',
+        freeLineId: flid,
+        startX1: line.x1, startY1: line.y1,
+        startX2: line.x2, startY2: line.y2,
+        startPX: mx, startPY: my,
+      };
+      svgRef.value!.setPointerCapture(event.pointerId);
+    }
+    event.preventDefault();
+    return;
+  }
+
   const hel = t.closest('[data-handle-id]');
   if (hel) {
     const hid = hel.getAttribute('data-handle-id')! as ResizeHandleId;
@@ -495,6 +607,22 @@ function onPointerDown(event: PointerEvent) {
 
   lastClickNodeId = null;
   emit('canvasClick');
+
+  // Shift + click OR line tool active on empty canvas: start free line drawing
+  if (event.shiftKey || props.lineToolActive) {
+    const sp = snapToGrid(pc.x, snapSize.value);
+    const sy = snapToGrid(pc.y, snapSize.value);
+    freeLineDrawX1.value = sp;
+    freeLineDrawY1.value = sy;
+    freeLineDrawX2.value = sp;
+    freeLineDrawY2.value = sy;
+    freeLineDrawPath.value = `M${sp},${sy} L${sp},${sy}`;
+    drag = { type: 'freeLine', startX: sp, startY: sy };
+    svgRef.value!.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    return;
+  }
+
   drag = { type: 'pan', startPX: event.clientX, startPY: event.clientY, startPanX: props.viewport.panX, startPanY: props.viewport.panY };
   svgRef.value!.setPointerCapture(event.pointerId);
   event.preventDefault();
@@ -502,6 +630,29 @@ function onPointerDown(event: PointerEvent) {
 
 function onPointerMove(event: PointerEvent) {
   const pc = sc(event.clientX, event.clientY);
+
+  if (drag.type === 'freeLine') {
+    const ex = snapToGrid(pc.x, snapSize.value);
+    const ey = snapToGrid(pc.y, snapSize.value);
+    freeLineDrawX2.value = ex;
+    freeLineDrawY2.value = ey;
+    freeLineDrawPath.value = `M${freeLineDrawX1.value},${freeLineDrawY1.value} L${ex},${ey}`;
+    return;
+  }
+
+  if (drag.type === 'freeLineMove') {
+    const mx = snapToGrid(pc.x, snapSize.value);
+    const my = snapToGrid(pc.y, snapSize.value);
+    const dx = mx - drag.startPX;
+    const dy = my - drag.startPY;
+    emit('freeLineMove', drag.freeLineId,
+      snapToGrid(drag.startX1 + dx, snapSize.value),
+      snapToGrid(drag.startY1 + dy, snapSize.value),
+      snapToGrid(drag.startX2 + dx, snapSize.value),
+      snapToGrid(drag.startY2 + dy, snapSize.value),
+    );
+    return;
+  }
 
   if (drag.type === 'pan') {
     emit('panMove', event.clientX - drag.startPX + drag.startPanX, event.clientY - drag.startPY + drag.startPanY);
@@ -651,6 +802,26 @@ function onPointerMove(event: PointerEvent) {
 function onPointerUp(event: PointerEvent) {
   if (drag.type === 'none') return;
 
+  if (drag.type === 'freeLine') {
+    const sx = freeLineDrawX1.value;
+    const sy = freeLineDrawY1.value;
+    const ex = freeLineDrawX2.value;
+    const ey = freeLineDrawY2.value;
+    freeLineDrawPath.value = '';
+    drag = { type: 'none' };
+    svgRef.value?.releasePointerCapture(event.pointerId);
+    if (sx !== ex || sy !== ey) {
+      emit('freeLineDraw', sx, sy, ex, ey);
+    }
+    return;
+  }
+
+  if (drag.type === 'freeLineMove') {
+    drag = { type: 'none' };
+    svgRef.value?.releasePointerCapture(event.pointerId);
+    return;
+  }
+
   if (drag.type === 'edgeHandle') {
     if (hoveredNodeId.value && hoveredAnchor.value) {
       emit('edgeReroute', drag.edgeId, drag.handle, hoveredNodeId.value, hoveredAnchor.value);
@@ -702,6 +873,15 @@ function onWheel(event: WheelEvent) {
   if (r) emit('canvasWheel', event, r);
 }
 function onDrop(event: DragEvent) {
+  const fl = event.dataTransfer?.getData('application/x-flowchart-freeline');
+  if (fl) {
+    const c = sc(event.clientX, event.clientY);
+    const cx = snapToGrid(c.x, snapSize.value);
+    const cy = snapToGrid(c.y, snapSize.value);
+    const defLen = snapToGrid(120, snapSize.value);
+    emit('freeLineDraw', cx - defLen / 2, cy, cx + defLen / 2, cy);
+    return;
+  }
   const nt = event.dataTransfer?.getData('application/x-flowchart-node-type') as NodeType | undefined;
   if (!nt) return;
   const c = sc(event.clientX, event.clientY);

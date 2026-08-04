@@ -37,6 +37,20 @@ export interface EdgeStyle {
   cornerRadius?: number;
 }
 
+export interface FreeLineStyle {
+  strokeColor?: string;
+  strokeWidth?: number;
+}
+
+export interface FreeLine {
+  id: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  style?: FreeLineStyle;
+}
+
 export interface FlowchartEdge {
   id: string;
   sourceNodeId: string;
@@ -50,6 +64,7 @@ export interface FlowchartEdge {
 export interface FlowchartData {
   nodes: FlowchartNode[];
   edges: FlowchartEdge[];
+  freeLines?: FreeLine[];
 }
 
 export interface SidebarNodeTemplate {
@@ -104,6 +119,11 @@ export const DEFAULT_EDGE_STYLE: Required<EdgeStyle> = {
   strokeColor: '#555555',
   strokeWidth: 2,
   cornerRadius: 8,
+};
+
+export const DEFAULT_FREE_LINE_STYLE: Required<FreeLineStyle> = {
+  strokeColor: '#555555',
+  strokeWidth: 2,
 };
 
 export const MIN_NODE_WIDTH = 40;

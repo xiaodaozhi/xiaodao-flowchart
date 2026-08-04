@@ -89,6 +89,46 @@
         class="sidebar-label"
       >{{ template.label }}</span>
     </div>
+    <div class="sidebar-divider" />
+    <div
+      class="sidebar-item"
+      :class="{ 'tool-active': lineToolActive }"
+      draggable="true"
+      @dragstart="onDragStartLine"
+      @click="onToggleLineTool"
+    >
+      <svg
+        width="32"
+        height="24"
+        class="sidebar-icon"
+      >
+        <line
+          x1="4"
+          y1="20"
+          x2="28"
+          y2="4"
+          :stroke="lineToolActive ? '#4A90D9' : 'var(--fc-sidebar-icon-stroke)'"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+        <circle
+          cx="4"
+          cy="20"
+          r="2"
+          :fill="lineToolActive ? '#4A90D9' : 'var(--fc-sidebar-icon-stroke)'"
+        />
+        <circle
+          cx="28"
+          cy="4"
+          r="2"
+          :fill="lineToolActive ? '#4A90D9' : 'var(--fc-sidebar-icon-stroke)'"
+        />
+      </svg>
+      <span
+        v-if="!isMobile"
+        class="sidebar-label"
+      >{{ lineToolLabel }}</span>
+    </div>
   </div>
 </template>
 
@@ -101,6 +141,11 @@ import { createI18n } from './composables/useFlowchartI18n';
 
 defineProps<{
   templates: SidebarNodeTemplate[];
+  lineToolActive?: boolean;
+}>();
+
+const emit = defineEmits<{
+  toggleLineTool: [];
 }>();
 
 const locale = inject(localeKey);
@@ -109,9 +154,19 @@ const mobile = inject(mobileKey);
 const isMobile = computed(() => mobile?.value ?? false);
 const i18n = computed(() => createI18n(locale?.value ?? 'zh-CN'));
 const sidebarTitle = computed(() => i18n.value.t('sidebar.title'));
+const lineToolLabel = computed(() => i18n.value.t('sidebar.freeLine'));
 
 function onDragStart(event: DragEvent, type: NodeType) {
   event.dataTransfer?.setData('application/x-flowchart-node-type', type);
+  event.dataTransfer!.effectAllowed = 'copy';
+}
+
+function onToggleLineTool() {
+  emit('toggleLineTool');
+}
+
+function onDragStartLine(event: DragEvent) {
+  event.dataTransfer?.setData('application/x-flowchart-freeline', '1');
   event.dataTransfer!.effectAllowed = 'copy';
 }
 </script>
@@ -167,6 +222,25 @@ function onDragStart(event: DragEvent, type: NodeType) {
 
 .sidebar-item:active {
   cursor: grabbing;
+}
+
+.sidebar-item.tool-active {
+  background: #4A90D9;
+  color: #fff;
+}
+
+.sidebar-item.tool-active .sidebar-label {
+  color: #fff;
+}
+
+.sidebar-item.tool-active:hover {
+  background: #3a7bc8;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--fc-sidebar-border);
+  margin: 4px 8px;
 }
 
 .sidebar-icon {

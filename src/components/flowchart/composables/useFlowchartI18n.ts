@@ -7,6 +7,10 @@ type I18nKey
     | 'node.delete'
     | 'edge.defaultColor'
     | 'edge.delete'
+    | 'toolbar.undo'
+    | 'toolbar.redo'
+    | 'toolbar.resetView'
+    | 'sidebar.freeLine'
     | 'template.rectangle'
     | 'template.diamond'
     | 'template.ellipse'
@@ -48,6 +52,10 @@ type I18nKey
 const messages: Record<Locale, Record<I18nKey, string>> = {
   'zh-CN': {
     'sidebar.title': '节点',
+    'toolbar.undo': '撤销',
+    'toolbar.redo': '重做',
+    'toolbar.resetView': '重置视图',
+    'sidebar.freeLine': '直线',
     'node.defaultColor': '默认颜色',
     'node.delete': '删除节点',
     'edge.defaultColor': '默认颜色',
@@ -92,6 +100,10 @@ const messages: Record<Locale, Record<I18nKey, string>> = {
   },
   'en-US': {
     'sidebar.title': 'Nodes',
+    'toolbar.undo': 'Undo',
+    'toolbar.redo': 'Redo',
+    'toolbar.resetView': 'Reset view',
+    'sidebar.freeLine': 'Line',
     'node.defaultColor': 'Default color',
     'node.delete': 'Delete node',
     'edge.defaultColor': 'Default color',

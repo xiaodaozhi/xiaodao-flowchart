@@ -35,18 +35,14 @@ export function useCanvasPanZoom(nodesRef: Ref<FlowchartNode[]>) {
     const contentW = (rightEdge - leftEdge) * zoom;
     const contentH = (bottomEdge - topEdge) * zoom;
 
-    if (contentW <= containerWidth) {
-      viewport.value.panX = containerWidth / 2 - ((leftEdge + rightEdge) / 2) * zoom;
-    } else {
+    if (contentW > containerWidth) {
       const screenLeft = leftEdge * zoom + viewport.value.panX;
       const screenRight = rightEdge * zoom + viewport.value.panX;
       if (screenLeft > 0) viewport.value.panX = -leftEdge * zoom;
       else if (screenRight < containerWidth) viewport.value.panX = containerWidth - rightEdge * zoom;
     }
 
-    if (contentH <= containerHeight) {
-      viewport.value.panY = containerHeight / 2 - ((topEdge + bottomEdge) / 2) * zoom;
-    } else {
+    if (contentH > containerHeight) {
       const screenTop = topEdge * zoom + viewport.value.panY;
       const screenBottom = bottomEdge * zoom + viewport.value.panY;
       if (screenTop > 0) viewport.value.panY = -topEdge * zoom;
