@@ -7,7 +7,11 @@
     @drop.prevent
     @dragover.prevent
   >
-    <NodeSidebar :templates="templates" :line-tool-active="lineToolActive" @toggle-line-tool="toggleLineTool" />
+    <NodeSidebar
+      :templates="templates"
+      :line-tool-active="lineToolActive"
+      @toggle-line-tool="toggleLineTool"
+    />
     <div class="canvas-area">
       <FlowchartCanvas
         :nodes="internalData.nodes"
@@ -50,7 +54,16 @@
           :title="i18n.t('toolbar.undo')"
           @click="undo"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h10a5 5 0 0 1 0 10H9"/><polyline points="7 6 3 10 7 14"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ><path d="M3 10h10a5 5 0 0 1 0 10H9" /><polyline points="7 6 3 10 7 14" /></svg>
         </button>
         <button
           class="canvas-tb-btn"
@@ -58,14 +71,32 @@
           :title="i18n.t('toolbar.redo')"
           @click="redo"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10H11a5 5 0 0 0 0 10h4"/><polyline points="17 6 21 10 17 14"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ><path d="M21 10H11a5 5 0 0 0 0 10h4" /><polyline points="17 6 21 10 17 14" /></svg>
         </button>
         <button
           class="canvas-tb-btn"
           :title="i18n.t('toolbar.resetView')"
           @click="resetCanvasView"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
         </button>
       </div>
       <NodeActionBar
@@ -461,7 +492,6 @@ function onPickEdgeOrLineColor(color: string) {
     model.updateEdgeStyle(id, { strokeColor: color });
   }
 }
-
 </script>
 
 <style scoped>

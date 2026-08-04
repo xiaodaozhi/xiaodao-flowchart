@@ -198,8 +198,10 @@ export function useFlowchartModel(
     if (newData.freeLines) {
       const fl = newData.freeLines.find((f) => f.id === id);
       if (fl) {
-        fl.x1 = x1; fl.y1 = y1;
-        fl.x2 = x2; fl.y2 = y2;
+        fl.x1 = x1;
+        fl.y1 = y1;
+        fl.x2 = x2;
+        fl.y2 = y2;
       }
     }
     commit(newData);
