@@ -205,6 +205,18 @@ function sameSide(paths: Point[], p1: Point, pN: Point, anchor: AnchorPosition, 
   const c = h ? 'x' : 'y';
   const perp = h ? 'y' : 'x';
 
+  const directCorner: Point = h ? { x: p1.x, y: pN.y } : { x: pN.x, y: p1.y };
+  if (cornerSafe(directCorner, p1, pN, z)) {
+    paths.push(directCorner);
+    return;
+  }
+
+  const alternateCorner: Point = h ? { x: pN.x, y: p1.y } : { x: p1.x, y: pN.y };
+  if (cornerSafe(alternateCorner, p1, pN, z)) {
+    paths.push(alternateCorner);
+    return;
+  }
+
   // Extend past the furthest node body edge
   const fwd = dir[c] > 0;
   let furthest: number;
