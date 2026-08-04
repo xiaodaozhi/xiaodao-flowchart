@@ -129,6 +129,7 @@ import { themeKey, localeKey, mobileKey } from './composables/useFlowchartContex
 import { createI18n } from './composables/useFlowchartI18n';
 import { getAnchorDisplayPoint } from './utils/anchorUtils';
 import { DEFAULT_COLOR, EDGE_DEFAULT_COLOR } from './utils/colorUtils';
+import { generateId } from './utils/idGenerator';
 import NodeSidebar from './NodeSidebar.vue';
 import FlowchartCanvas from './FlowchartCanvas.vue';
 import NodeActionBar from './NodeActionBar.vue';
@@ -294,9 +295,11 @@ useKeyboard({
 
 onMounted(() => {
   window.addEventListener('keydown', onUndoRedoKeydown);
+  window.addEventListener('paste', onExternalPaste);
 });
 onUnmounted(() => {
   window.removeEventListener('keydown', onUndoRedoKeydown);
+  window.removeEventListener('paste', onExternalPaste);
 });
 
 function onUndoRedoKeydown(e: KeyboardEvent) {
@@ -313,6 +316,115 @@ function onUndoRedoKeydown(e: KeyboardEvent) {
   } else if (e.key === 'y' || e.key === 'Y') {
     e.preventDefault();
     redo();
+  } else if (e.key === 'x' || e.key === 'X') {
+    e.preventDefault();
+    cutSelection();
+  } else if (e.key === 'c' || e.key === 'C') {
+    e.preventDefault();
+    copySelection();
+  }
+  // Ctrl+V is handled in the paste event listener below
+}
+
+const internalClipboard = ref<FlowchartData | null>(null);
+
+function copySelection() {
+  if (editingNodeId.value) return;
+  const nid = selection.selectedNodeId.value;
+  const eid = selection.selectedEdgeId.value;
+  const fid = selection.selectedFreeLineId.value;
+  if (!nid && !eid && !fid) return;
+
+  if (nid) {
+    const node = model.getNode(nid);
+    if (node) {
+      internalClipboard.value = { nodes: [JSON.parse(JSON.stringify(node))], edges: [] };
+    }
+  } else if (eid) {
+    const edge = model.getEdge(eid);
+    if (edge) {
+      internalClipboard.value = { nodes: [], edges: [JSON.parse(JSON.stringify(edge))] };
+    }
+  } else if (fid) {
+    const fl = model.getFreeLine(fid);
+    if (fl) {
+      internalClipboard.value = { nodes: [], edges: [], freeLines: [JSON.parse(JSON.stringify(fl))] };
+    }
+  }
+}
+
+function cutSelection() {
+  copySelection();
+  handleDelete();
+}
+
+const PASTE_OFFSET = 30;
+let pasteCounter = 0;
+
+function pasteClipboard() {
+  if (!internalClipboard.value) return;
+  pasteCounter++;
+  const offset = PASTE_OFFSET * pasteCounter;
+  const clip = internalClipboard.value;
+  const newIds = new Map<string, string>();
+
+  const newNodes = (clip.nodes ?? []).map((n) => {
+    const nid = generateId();
+    newIds.set(n.id, nid);
+    return { ...n, id: nid, x: n.x + offset, y: n.y + offset };
+  });
+  const newEdges = (clip.edges ?? []).map((e) => ({
+    ...e,
+    id: generateId(),
+    sourceNodeId: newIds.get(e.sourceNodeId) ?? e.sourceNodeId,
+    targetNodeId: newIds.get(e.targetNodeId) ?? e.targetNodeId,
+  }));
+  const newLines = (clip.freeLines ?? []).map((fl) => ({
+    ...fl,
+    id: generateId(),
+    x1: fl.x1 + offset,
+    y1: fl.y1 + offset,
+    x2: fl.x2 + offset,
+    y2: fl.y2 + offset,
+  }));
+
+  const cur = JSON.parse(JSON.stringify(internalData.value)) as FlowchartData;
+  cur.nodes.push(...newNodes);
+  cur.edges.push(...newEdges);
+  cur.freeLines = [...(cur.freeLines ?? []), ...newLines];
+  emit('update:modelValue', cur);
+}
+
+function onExternalPaste(e: ClipboardEvent) {
+  // If we have internal clipboard content, use that (handles Ctrl+V paste of flowchart items)
+  if (internalClipboard.value) {
+    e.preventDefault();
+    pasteClipboard();
+    return;
+  }
+  // Otherwise, try to paste system clipboard text as a "text" node
+  if (editingNodeId.value) return;
+  const text = e.clipboardData?.getData('text/plain')?.trim();
+  if (!text || text.length === 0) return;
+  e.preventDefault();
+  const label = text.length > 100 ? text.slice(0, 100) : text;
+  // Place the text node at the center of the current viewport
+  const container = document.querySelector('.flowchart-container');
+  if (!container) return;
+  const containerWidth = container.clientWidth;
+  const containerHeight = container.clientHeight;
+  const vp = viewport.value;
+  const cx = (containerWidth / 2 - vp.panX) / vp.zoom;
+  const cy = (containerHeight / 2 - vp.panY) / vp.zoom;
+  const w = 200;
+  const h = 40;
+  model.addNode('text', cx - w / 2, cy - h / 2, w, h);
+  // Update the label of the newly created node
+  const newData = JSON.parse(JSON.stringify(internalData.value)) as FlowchartData;
+  const newNode = newData.nodes[newData.nodes.length - 1];
+  if (newNode) {
+    newNode.label = label;
+    emit('update:modelValue', newData);
   }
 }
 
