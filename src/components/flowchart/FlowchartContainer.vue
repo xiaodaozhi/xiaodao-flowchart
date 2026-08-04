@@ -98,18 +98,38 @@
             stroke-linejoin="round"
           ><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
         </button>
+        <button
+          v-if="selectedNodeId !== null || selectedEdgeId !== null || selectedFreeLineId !== null"
+          class="canvas-tb-btn canvas-tb-delete"
+          :title="deleteButtonTitle"
+          @click="handleDelete()"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          </svg>
+        </button>
       </div>
       <NodeActionBar
         :visible="selectedNodeId !== null"
         :current-color="selectedNodeColor"
         @pick-color="onPickNodeColor"
-        @delete="onDeleteSelectedNode"
       />
       <EdgeActionBar
         :visible="selectedEdgeId !== null || selectedFreeLineId !== null"
         :current-color="selectedEdgeOrLineColor"
         @pick-color="onPickEdgeOrLineColor"
-        @delete="onDeleteSelectedEdgeOrLine"
       />
     </div>
   </div>
@@ -182,6 +202,11 @@ const sidebar = useDragFromSidebar(model.addNode, computed(() => createI18n(reso
 const { templates } = sidebar;
 
 const i18n = computed(() => createI18n(resolvedLocale.value));
+const deleteButtonTitle = computed(() => {
+  if (selectedNodeId.value) return i18n.value.t('node.delete');
+  if (selectedEdgeId.value) return i18n.value.t('edge.delete');
+  return i18n.value.t('toolbar.delete');
+});
 const lineToolActive = ref(false);
 
 function toggleLineTool() {
@@ -553,27 +578,8 @@ function onPickNodeColor(color: string) {
   }
 }
 
-function onDeleteSelectedNode() {
-  const id = selectedNodeId.value;
-  if (!id) return;
-  model.removeNode(id);
-  selection.clearSelection();
-}
-
 function onEdgeRemove(edgeId: string) {
   model.removeEdge(edgeId);
-}
-
-function onDeleteSelectedEdgeOrLine() {
-  if (selectedFreeLineId.value) {
-    model.removeFreeLine(selectedFreeLineId.value);
-    selection.clearSelection();
-    return;
-  }
-  const id = selectedEdgeId.value;
-  if (!id) return;
-  model.removeEdge(id);
-  selection.clearSelection();
 }
 
 const selectedEdgeOrLineColor = computed(() => {
@@ -658,5 +664,10 @@ function onPickEdgeOrLineColor(color: string) {
 .canvas-tb-btn:disabled {
   opacity: 0.35;
   cursor: default;
+}
+
+.canvas-tb-delete:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #dc2626;
 }
 </style>

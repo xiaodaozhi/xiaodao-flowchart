@@ -65,32 +65,6 @@
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
-
-        <!-- Separator -->
-        <div class="separator" />
-
-        <!-- Delete button -->
-        <button
-          class="delete-btn"
-          :title="i18n.t('node.delete')"
-          @click="$emit('delete')"
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-          >
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-            <path d="M10 11v6" />
-            <path d="M14 11v6" />
-            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-          </svg>
-        </button>
       </div>
     </div>
   </Transition>
@@ -110,7 +84,6 @@ const props = defineProps<{
 
 defineEmits<{
   pickColor: [color: string];
-  delete: [];
 }>();
 
 const { locale } = useFlowchartContext();
@@ -263,33 +236,6 @@ watch(() => props.visible, async (v) => {
 .color-btn.is-default {
   border-style: dashed;
   background: transparent !important;
-}
-
-.separator {
-  width: 1px;
-  height: 24px;
-  background: var(--fc-bar-separator);
-  flex-shrink: 0;
-}
-
-.delete-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: var(--fc-bar-delete);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: color 0.15s, background 0.15s;
-}
-
-.delete-btn:hover {
-  color: var(--fc-bar-delete-hover);
-  background: var(--fc-bar-delete-hover-bg);
 }
 
 /* Transition */

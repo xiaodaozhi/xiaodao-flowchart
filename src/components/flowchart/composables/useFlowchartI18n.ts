@@ -10,6 +10,7 @@ type I18nKey
     | 'toolbar.undo'
     | 'toolbar.redo'
     | 'toolbar.resetView'
+    | 'toolbar.delete'
     | 'sidebar.freeLine'
     | 'template.rectangle'
     | 'template.diamond'
@@ -55,6 +56,7 @@ const messages: Record<Locale, Record<I18nKey, string>> = {
     'toolbar.undo': '撤销',
     'toolbar.redo': '重做',
     'toolbar.resetView': '重置视图',
+    'toolbar.delete': '删除',
     'sidebar.freeLine': '直线',
     'node.defaultColor': '默认颜色',
     'node.delete': '删除节点',
@@ -103,6 +105,7 @@ const messages: Record<Locale, Record<I18nKey, string>> = {
     'toolbar.undo': 'Undo',
     'toolbar.redo': 'Redo',
     'toolbar.resetView': 'Reset view',
+    'toolbar.delete': 'Delete',
     'sidebar.freeLine': 'Line',
     'node.defaultColor': 'Default color',
     'node.delete': 'Delete node',
