@@ -78,8 +78,8 @@
         </pattern>
         <marker
           v-for="c in edgeMarkerColors"
-          :key="c"
           :id="arrowMarkerId(c)"
+          :key="c"
           markerWidth="10"
           markerHeight="7"
           refX="9"
