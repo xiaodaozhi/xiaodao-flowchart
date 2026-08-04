@@ -18,10 +18,10 @@
     <path
       :d="pathD"
       fill="none"
-      :stroke="edge.style?.strokeColor ?? '#555'"
+      :stroke="edgeColor"
       :stroke-width="edge.style?.strokeWidth ?? 2"
       stroke-linecap="round"
-      marker-end="url(#arrowhead)"
+      :marker-end="markerUrl"
       class="edge-path"
     />
     <!-- Edge label -->
@@ -63,6 +63,8 @@ defineEmits<{
   dblClick: [edgeId: string];
 }>();
 
+const edgeColor = computed(() => props.edge.style?.strokeColor ?? '#555555');
+const markerUrl = computed(() => `url(#arrowhead-${edgeColor.value.replace('#', '')})`);
 const cornerRadius = computed(() => props.edge.style?.cornerRadius ?? 8);
 const strokeWidth = computed(() => props.edge.style?.strokeWidth ?? 2);
 const hitWidth = computed(() => Math.max(strokeWidth.value + 8, 14));

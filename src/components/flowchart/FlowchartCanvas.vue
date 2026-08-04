@@ -77,7 +77,9 @@
           />
         </pattern>
         <marker
-          id="arrowhead"
+          v-for="c in edgeMarkerColors"
+          :key="c"
+          :id="arrowMarkerId(c)"
           markerWidth="10"
           markerHeight="7"
           refX="9"
@@ -87,7 +89,7 @@
         >
           <polygon
             points="0 0, 10 3.5, 0 7"
-            fill="context-stroke"
+            :fill="c"
           />
         </marker>
       </defs>
@@ -284,6 +286,7 @@ import type { FlowchartNode, FlowchartEdge, FreeLine, CanvasViewport, EdgeDrawin
 import { getAnchorDisplayPoint, getAnchorPoint } from './utils/anchorUtils';
 import { computeOrthogonalWaypoints, buildRoundedPath } from './utils/edgeRouting';
 import { snapToGrid } from './utils/geometry';
+import { EDGE_DEFAULT_COLOR } from './utils/colorUtils';
 import { useFlowchartContext } from './composables/useFlowchartContext';
 import FlowchartEdgeCmp from './FlowchartEdge.vue';
 import FlowchartNodeCmp from './FlowchartNode.vue';
@@ -336,6 +339,19 @@ const snapSize = computed(() => {
 // Grid dot colors — computed from theme since SVG patterns can't use CSS var()
 const gridDotStrong = computed(() => currentTheme.value === 'dark' ? '#555' : '#B0B0B0');
 const gridDotWeak = computed(() => currentTheme.value === 'dark' ? '#444' : '#D0D0D0');
+
+// Per-color arrowhead markers (iOS Safari does not support fill="context-stroke")
+const edgeMarkerColors = computed(() => {
+  const set = new Set<string>([EDGE_DEFAULT_COLOR]);
+  for (const e of props.edges) {
+    const c = e.style?.strokeColor ?? EDGE_DEFAULT_COLOR;
+    set.add(c);
+  }
+  return Array.from(set);
+});
+function arrowMarkerId(color: string): string {
+  return `arrowhead-${color.replace('#', '')}`;
+}
 
 // --- everything below is unchanged from the original ---
 
