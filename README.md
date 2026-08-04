@@ -2,6 +2,8 @@
 
 A pure frontend interactive flowchart editor component built with Vue 3 + TypeScript + Vite.
 
+![Preview](./img/preview.png)
+
 ## Features
 
 - **5 node types** — Rectangle, diamond, ellipse, parallelogram, and free-text nodes. All support drag, resize, inline label editing, and custom styling.
@@ -14,7 +16,8 @@ A pure frontend interactive flowchart editor component built with Vue 3 + TypeSc
 - **Light/dark themes** — CSS custom property driven, 60+ variables covering all UI elements. Toggle via the `theme` prop.
 - **Internationalization** — Built-in Chinese (zh-CN) and English (en-US). Switch via the `locale` prop.
 - **Preset color palettes** — 18 colors for nodes + 15 colors for edges, with automatic text contrast calculation (black/white).
-- **Keyboard shortcuts** — Delete/Backspace to remove, arrow keys to nudge (Shift accelerates 4x), Escape to cancel.
+- **Keyboard shortcuts** — Undo/Redo (Ctrl+Z/Y), Cut/Copy/Paste (Ctrl+X/C/V), Delete/Backspace to remove, arrow keys to nudge (Shift accelerates 4x), Escape to cancel.
+- **External text paste** — Paste plain text from the system clipboard to create a text node at the viewport center.
 - **v-model data-driven** — Single source of truth with two-way binding via `update:modelValue` event.
 - **Full TypeScript coverage** — Complete type definitions, with composable types exported for external use.
 
@@ -177,8 +180,8 @@ src/
     ├── AnchorPoints.vue                 # Anchor point controls
     ├── ResizeHandles.vue                # Resize handles (8 directions)
     ├── TextNodeEditor.vue              # Inline text editor
-    ├── NodeActionBar.vue               # Node action bar (color / delete)
-    ├── EdgeActionBar.vue               # Edge action bar (color / delete)
+    ├── NodeActionBar.vue               # Node action bar (color picker)
+    ├── EdgeActionBar.vue               # Edge / free line action bar (color picker)
     ├── types/
     │   └── index.ts                    # All type definitions & constants
     ├── utils/
@@ -213,8 +216,11 @@ src/
 | Create an edge | Drag from a source node's anchor to a target node's anchor |
 | Reconnect an edge | Select the edge, then drag its endpoint handle |
 | Select node / edge | Single-click |
-| Delete | Select and press Delete / Backspace, or click the action bar delete button |
+| Delete | Select and press Delete / Backspace, Ctrl+X, or click the delete button in the top-right toolbar |
 | Change color | Select and click a color button in the bottom action bar |
+| Undo / Redo | Ctrl+Z / Ctrl+Shift+Z or Ctrl+Y (Cmd on Mac) |
+| Cut / Copy / Paste | Ctrl+X / Ctrl+C / Ctrl+V (Cmd on Mac) |
+| Paste external text | Ctrl+V with no flowchart content copied — creates a text node at viewport center |
 | Pan canvas | Right-click drag or middle-click drag on empty area |
 | Zoom canvas | Mouse wheel |
 | Nudge a node | Arrow keys (hold Shift to accelerate) |
