@@ -70,13 +70,52 @@ export function useCanvasPanZoom(nodesRef: Ref<FlowchartNode[]>) {
     applyPanClamp(newZoom, containerRect.width, containerRect.height);
   }
 
-  function resetView() {
-    viewport.value = { panX: 0, panY: 0, zoom: 1 };
+  function resetView(containerWidth: number, containerHeight: number) {
+    let ns: FlowchartNode[];
+    try {
+      ns = unref(nodesRef) ?? [];
+    } catch {
+      viewport.value = { panX: 0, panY: 0, zoom: 1 };
+      return;
+    }
+
+    if (ns.length === 0) {
+      viewport.value = { panX: 0, panY: 0, zoom: 1 };
+      return;
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const n of ns) {
+      if (n.x < minX) minX = n.x;
+      if (n.y < minY) minY = n.y;
+      if (n.x + n.width > maxX) maxX = n.x + n.width;
+      if (n.y + n.height > maxY) maxY = n.y + n.height;
+    }
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const zoom = 1;
+    viewport.value = {
+      panX: containerWidth / 2 - centerX * zoom,
+      panY: containerHeight / 2 - centerY * zoom,
+      zoom,
+    };
+  }
+
+  function zoomAtCenter(delta: number, containerWidth: number, containerHeight: number) {
+    const newZoom = clamp(viewport.value.zoom * delta, MIN_ZOOM, MAX_ZOOM);
+    const cx = containerWidth / 2;
+    const cy = containerHeight / 2;
+    const scale = newZoom / viewport.value.zoom;
+    viewport.value.panX = cx - (cx - viewport.value.panX) * scale;
+    viewport.value.panY = cy - (cy - viewport.value.panY) * scale;
+    viewport.value.zoom = newZoom;
+    applyPanClamp(newZoom, containerWidth, containerHeight);
   }
 
   function clampPan(containerWidth: number, containerHeight: number) {
     applyPanClamp(viewport.value.zoom, containerWidth, containerHeight);
   }
 
-  return { viewport, screenToCanvas, handleWheel, clampPan, resetView };
+  return { viewport, screenToCanvas, handleWheel, zoomAtCenter, clampPan, resetView };
 }

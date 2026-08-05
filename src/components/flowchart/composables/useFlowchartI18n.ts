@@ -9,6 +9,8 @@ type I18nKey
     | 'edge.delete'
     | 'toolbar.undo'
     | 'toolbar.redo'
+    | 'toolbar.zoomIn'
+    | 'toolbar.zoomOut'
     | 'toolbar.resetView'
     | 'toolbar.delete'
     | 'sidebar.freeLine'
@@ -55,6 +57,8 @@ const messages: Record<Locale, Record<I18nKey, string>> = {
     'sidebar.title': '节点',
     'toolbar.undo': '撤销',
     'toolbar.redo': '重做',
+    'toolbar.zoomIn': '放大',
+    'toolbar.zoomOut': '缩小',
     'toolbar.resetView': '重置视图',
     'toolbar.delete': '删除',
     'sidebar.freeLine': '直线',
@@ -104,6 +108,8 @@ const messages: Record<Locale, Record<I18nKey, string>> = {
     'sidebar.title': 'Nodes',
     'toolbar.undo': 'Undo',
     'toolbar.redo': 'Redo',
+    'toolbar.zoomIn': 'Zoom in',
+    'toolbar.zoomOut': 'Zoom out',
     'toolbar.resetView': 'Reset view',
     'toolbar.delete': 'Delete',
     'sidebar.freeLine': 'Line',

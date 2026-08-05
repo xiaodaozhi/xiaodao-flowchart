@@ -12,7 +12,10 @@
       :line-tool-active="lineToolActive"
       @toggle-line-tool="toggleLineTool"
     />
-    <div class="canvas-area">
+    <div
+      ref="canvasAreaRef"
+      class="canvas-area"
+    >
       <FlowchartCanvas
         :nodes="internalData.nodes"
         :edges="internalData.edges"
@@ -84,6 +87,71 @@
         </button>
         <button
           class="canvas-tb-btn"
+          :title="i18n.t('toolbar.zoomIn')"
+          @click="zoomIn"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ><circle
+            cx="11"
+            cy="11"
+            r="8"
+          /><line
+            x1="21"
+            y1="21"
+            x2="16.65"
+            y2="16.65"
+          /><line
+            x1="11"
+            y1="8"
+            x2="11"
+            y2="14"
+          /><line
+            x1="8"
+            y1="11"
+            x2="14"
+            y2="11"
+          /></svg>
+        </button>
+        <button
+          class="canvas-tb-btn"
+          :title="i18n.t('toolbar.zoomOut')"
+          @click="zoomOut"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ><circle
+            cx="11"
+            cy="11"
+            r="8"
+          /><line
+            x1="21"
+            y1="21"
+            x2="16.65"
+            y2="16.65"
+          /><line
+            x1="8"
+            y1="11"
+            x2="14"
+            y2="11"
+          /></svg>
+        </button>
+        <button
+          class="canvas-tb-btn"
           :title="i18n.t('toolbar.resetView')"
           @click="resetCanvasView"
         >
@@ -136,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, toRef, type Ref, provide, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, toRef, type Ref, provide, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import type { FlowchartData, AnchorPosition, NodeType, Theme, Locale } from './types/index.ts';
 import { GRID_SIZE } from './types/index';
 import { useFlowchartModel } from './composables/useFlowchartModel';
@@ -208,13 +276,14 @@ const deleteButtonTitle = computed(() => {
   return i18n.value.t('toolbar.delete');
 });
 const lineToolActive = ref(false);
+const canvasAreaRef = ref<HTMLElement | null>(null);
 
 function toggleLineTool() {
   lineToolActive.value = !lineToolActive.value;
 }
 
 const panZoom = useCanvasPanZoom(computed(() => internalData.value.nodes));
-const { viewport, handleWheel, resetView } = panZoom;
+const { viewport, handleWheel, zoomAtCenter, resetView } = panZoom;
 
 // ─── Undo / Redo history ──────────────────────────────────────────────────
 const MAX_HISTORY = 50;
@@ -253,8 +322,22 @@ function redo() {
   emit('update:modelValue', JSON.parse(JSON.stringify(history.value[historyIndex.value])));
 }
 
+const ZOOM_STEP = 1.08;
+
+function zoomIn() {
+  const el = canvasAreaRef.value;
+  if (el) zoomAtCenter(ZOOM_STEP, el.clientWidth, el.clientHeight);
+}
+
+function zoomOut() {
+  const el = canvasAreaRef.value;
+  if (el) zoomAtCenter(1 / ZOOM_STEP, el.clientWidth, el.clientHeight);
+}
+
 function resetCanvasView() {
-  resetView();
+  const el = canvasAreaRef.value;
+  if (el) resetView(el.clientWidth, el.clientHeight);
+  else resetView(0, 0);
 }
 
 watch(modelValueRef, (newVal) => {
@@ -321,6 +404,10 @@ useKeyboard({
 onMounted(() => {
   window.addEventListener('keydown', onUndoRedoKeydown);
   window.addEventListener('paste', onExternalPaste);
+  nextTick(() => {
+    const el = canvasAreaRef.value;
+    if (el) resetView(el.clientWidth, el.clientHeight);
+  });
 });
 onUnmounted(() => {
   window.removeEventListener('keydown', onUndoRedoKeydown);

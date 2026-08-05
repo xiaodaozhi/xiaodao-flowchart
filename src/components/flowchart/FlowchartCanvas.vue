@@ -280,7 +280,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import './style/theme.css';
 import type { FlowchartNode, FlowchartEdge, FreeLine, CanvasViewport, EdgeDrawingState, AnchorPosition, ResizeHandleId, NodeType } from './types/index.ts';
 import { getAnchorDisplayPoint, getAnchorPoint } from './utils/anchorUtils';
@@ -383,25 +383,6 @@ const emit = defineEmits<{
   labelCommit: [label: string]; labelCancel: [];
   edgeReroute: [edgeId: string, handle: 'source' | 'target', targetNodeId: string, targetAnchor: AnchorPosition];
 }>();
-
-onMounted(() => {
-  const w = wrapperRef.value;
-  if (!w || props.nodes.length === 0) return;
-  const r = w.getBoundingClientRect();
-  if (r.width === 0 || r.height === 0) return;
-
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const n of props.nodes) {
-    if (n.x < minX) minX = n.x;
-    if (n.y < minY) minY = n.y;
-    if (n.x + n.width > maxX) maxX = n.x + n.width;
-    if (n.y + n.height > maxY) maxY = n.y + n.height;
-  }
-  const z = props.viewport.zoom;
-  const panX = r.width / 2 - ((minX + maxX) / 2) * z;
-  const panY = r.height / 2 - ((minY + maxY) / 2) * z;
-  emit('panMove', panX, panY);
-});
 
 const svgRef = ref<SVGSVGElement | null>(null);
 const wrapperRef = ref<HTMLElement | null>(null);
