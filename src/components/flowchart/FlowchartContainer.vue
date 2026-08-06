@@ -10,7 +10,9 @@
     <NodeSidebar
       :templates="templates"
       :line-tool-active="lineToolActive"
+      :selected-node-tool="selectedNodeTool"
       @toggle-line-tool="toggleLineTool"
+      @toggle-node-tool="toggleNodeTool"
       @node-pointer-drag-start="onSidebarNodePointerDragStart"
       @node-pointer-drag-move="onSidebarNodePointerDragMove"
       @node-pointer-drag-end="onSidebarNodePointerDragEnd"
@@ -129,6 +131,7 @@
         :selected-edge-id="selectedEdgeId"
         :selected-free-line-id="selectedFreeLineId"
         :line-tool-active="lineToolActive"
+        :active-node-tool="selectedNodeTool"
         :drawing-state="drawingState"
         :editing-node-id="editingNodeId"
         :editing-info="editingInfo"
@@ -140,6 +143,7 @@
         @free-line-click="onFreeLineClick"
         @free-line-draw="onFreeLineDraw"
         @free-line-move="onFreeLineMove"
+        @node-tool-draw="onNodeToolDraw"
         @node-drag-move="(nid, x, y) => model.setNodePosition(nid, x, y)"
         @node-resize="(nid, x, y, w, h) => model.resizeNode(nid, x, y, w, h)"
         @anchor-mouse-down="onAnchorMouseDown"
@@ -381,6 +385,7 @@ const deleteButtonTitle = computed(() => {
   return i18n.value.t('toolbar.delete');
 });
 const lineToolActive = ref(false);
+const selectedNodeTool = ref<NodeType | null>(null);
 const canvasAreaRef = ref<HTMLElement | null>(null);
 const sidebarNodeDrag = ref<{ nodeType: NodeType; clientX: number; clientY: number } | null>(null);
 const sidebarLineDrag = ref<{ clientX: number; clientY: number } | null>(null);
@@ -421,6 +426,12 @@ const sidebarDragGhostStyle = computed(() => {
 
 function toggleLineTool() {
   lineToolActive.value = !lineToolActive.value;
+  if (lineToolActive.value) selectedNodeTool.value = null;
+}
+
+function toggleNodeTool(nodeType: NodeType) {
+  selectedNodeTool.value = selectedNodeTool.value === nodeType ? null : nodeType;
+  if (selectedNodeTool.value) lineToolActive.value = false;
 }
 
 const panZoom = useCanvasPanZoom(computed(() => internalData.value.nodes));
@@ -533,6 +544,8 @@ useKeyboard({
   Backspace: handleDelete,
   Escape: () => {
     cancelDrawing();
+    lineToolActive.value = false;
+    selectedNodeTool.value = null;
     selection.clearSelection();
     cancelEditing();
   },
@@ -736,6 +749,11 @@ function onFreeLineClick(freeLineId: string) {
 function onFreeLineDraw(x1: number, y1: number, x2: number, y2: number) {
   model.addFreeLine(x1, y1, x2, y2);
   if (lineToolActive.value) lineToolActive.value = false;
+}
+
+function onNodeToolDraw(nodeType: NodeType, x: number, y: number, width: number, height: number) {
+  model.addNode(nodeType, x, y, width, height);
+  if (selectedNodeTool.value === nodeType) selectedNodeTool.value = null;
 }
 
 function onFreeLineMove(freeLineId: string, x1: number, y1: number, x2: number, y2: number) {

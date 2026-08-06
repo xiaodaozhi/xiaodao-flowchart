@@ -13,8 +13,10 @@
       v-for="template in templates"
       :key="template.type"
       class="sidebar-item"
+      :class="{ 'tool-active': selectedNodeTool === template.type }"
       draggable="true"
       @dragstart="onDragStart($event, template.type)"
+      @click="onToggleNodeTool(template.type)"
       @pointerdown="onNodePointerDown($event, template.type)"
       @pointermove="onNodePointerMove"
       @pointerup="onNodePointerUp"
@@ -34,7 +36,7 @@
           height="20"
           rx="3"
           fill="var(--fc-sidebar-icon-fill)"
-          stroke="var(--fc-sidebar-icon-stroke)"
+          :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
           stroke-width="1.5"
         />
         <!-- Diamond -->
@@ -42,7 +44,7 @@
           v-if="template.type === 'diamond'"
           :points="`16,1 30,12 16,23 2,12`"
           fill="var(--fc-sidebar-icon-fill)"
-          stroke="var(--fc-sidebar-icon-stroke)"
+          :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
           stroke-width="1.5"
         />
         <!-- Ellipse -->
@@ -53,7 +55,7 @@
           rx="14"
           ry="10"
           fill="var(--fc-sidebar-icon-fill)"
-          stroke="var(--fc-sidebar-icon-stroke)"
+          :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
           stroke-width="1.5"
         />
         <!-- Parallelogram -->
@@ -61,7 +63,7 @@
           v-if="template.type === 'parallelogram'"
           points="6,2 30,2 26,22 2,22"
           fill="var(--fc-sidebar-icon-fill)"
-          stroke="var(--fc-sidebar-icon-stroke)"
+          :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
           stroke-width="1.5"
         />
         <!-- Text -->
@@ -73,7 +75,7 @@
             height="18"
             rx="2"
             fill="var(--fc-sidebar-icon-fill)"
-            stroke="var(--fc-sidebar-icon-stroke)"
+            :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
             stroke-width="1.5"
             stroke-dasharray="3,2"
           />
@@ -82,7 +84,7 @@
             y="16"
             text-anchor="middle"
             font-size="12"
-            fill="var(--fc-sidebar-icon-stroke)"
+            :fill="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
             font-weight="bold"
             font-family="serif"
           >T</text>
@@ -150,10 +152,12 @@ import { createI18n } from './composables/useFlowchartI18n';
 defineProps<{
   templates: SidebarNodeTemplate[];
   lineToolActive?: boolean;
+  selectedNodeTool?: NodeType | null;
 }>();
 
 const emit = defineEmits<{
   toggleLineTool: [];
+  toggleNodeTool: [nodeType: NodeType];
   nodePointerDragStart: [nodeType: NodeType, clientX: number, clientY: number];
   nodePointerDragMove: [clientX: number, clientY: number];
   nodePointerDragEnd: [clientX: number, clientY: number];
@@ -173,6 +177,11 @@ const sidebarTitle = computed(() => i18n.value.t('sidebar.title'));
 const lineToolLabel = computed(() => i18n.value.t('sidebar.freeLine'));
 
 let nodeDragPointerId: number | null = null;
+let nodeDragType: NodeType | null = null;
+let nodeDragStartX = 0;
+let nodeDragStartY = 0;
+let nodeDragMoved = false;
+let suppressNextNodeClick = false;
 let lineDragPointerId: number | null = null;
 let lineDragStartX = 0;
 let lineDragStartY = 0;
@@ -192,15 +201,23 @@ function shouldUsePointerDrag(event: PointerEvent): boolean {
 function onNodePointerDown(event: PointerEvent, type: NodeType) {
   if (!shouldUsePointerDrag(event)) return;
   nodeDragPointerId = event.pointerId;
+  nodeDragType = type;
+  nodeDragStartX = event.clientX;
+  nodeDragStartY = event.clientY;
+  nodeDragMoved = false;
   (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-  emit('nodePointerDragStart', type, event.clientX, event.clientY);
   event.preventDefault();
   event.stopPropagation();
 }
 
 function onNodePointerMove(event: PointerEvent) {
   if (event.pointerId !== nodeDragPointerId) return;
-  emit('nodePointerDragMove', event.clientX, event.clientY);
+  const moved = Math.hypot(event.clientX - nodeDragStartX, event.clientY - nodeDragStartY) >= POINTER_DRAG_THRESHOLD;
+  if (moved && !nodeDragMoved && nodeDragType) {
+    nodeDragMoved = true;
+    emit('nodePointerDragStart', nodeDragType, nodeDragStartX, nodeDragStartY);
+  }
+  if (nodeDragMoved) emit('nodePointerDragMove', event.clientX, event.clientY);
   event.preventDefault();
   event.stopPropagation();
 }
@@ -208,9 +225,16 @@ function onNodePointerMove(event: PointerEvent) {
 function onNodePointerUp(event: PointerEvent) {
   if (event.pointerId !== nodeDragPointerId) return;
   nodeDragPointerId = null;
+  const type = nodeDragType;
+  nodeDragType = null;
+  suppressNextNodeClick = true;
   const target = event.currentTarget as HTMLElement;
   if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
-  emit('nodePointerDragEnd', event.clientX, event.clientY);
+  if (nodeDragMoved) {
+    emit('nodePointerDragEnd', event.clientX, event.clientY);
+  } else if (type) {
+    emit('toggleNodeTool', type);
+  }
   event.preventDefault();
   event.stopPropagation();
 }
@@ -218,9 +242,20 @@ function onNodePointerUp(event: PointerEvent) {
 function onNodePointerCancel(event: PointerEvent) {
   if (event.pointerId !== nodeDragPointerId) return;
   nodeDragPointerId = null;
+  nodeDragType = null;
+  nodeDragMoved = false;
   const target = event.currentTarget as HTMLElement;
   if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
   emit('nodePointerDragCancel');
+}
+
+function onToggleNodeTool(type: NodeType) {
+  if (suppressNextNodeClick) {
+    suppressNextNodeClick = false;
+    return;
+  }
+  if (nodeDragPointerId !== null) return;
+  emit('toggleNodeTool', type);
 }
 
 function onToggleLineTool() {

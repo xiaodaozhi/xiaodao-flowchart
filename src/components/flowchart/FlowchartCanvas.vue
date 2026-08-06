@@ -287,6 +287,52 @@
           stroke-linecap="round"
           stroke-dasharray="6,3"
         />
+        <g
+          v-if="nodeToolDrawType"
+          class="node-tool-preview"
+        >
+          <rect
+            v-if="nodeToolDrawType === 'rectangle'"
+            :x="nodeToolDrawX"
+            :y="nodeToolDrawY"
+            :width="nodeToolDrawW"
+            :height="nodeToolDrawH"
+            rx="4"
+          />
+          <polygon
+            v-if="nodeToolDrawType === 'diamond'"
+            :points="nodeToolDiamondPoints"
+          />
+          <ellipse
+            v-if="nodeToolDrawType === 'ellipse'"
+            :cx="nodeToolDrawX + nodeToolDrawW / 2"
+            :cy="nodeToolDrawY + nodeToolDrawH / 2"
+            :rx="nodeToolDrawW / 2"
+            :ry="nodeToolDrawH / 2"
+          />
+          <polygon
+            v-if="nodeToolDrawType === 'parallelogram'"
+            :points="nodeToolParallelogramPoints"
+          />
+          <g v-if="nodeToolDrawType === 'text'">
+            <rect
+              :x="nodeToolDrawX"
+              :y="nodeToolDrawY"
+              :width="nodeToolDrawW"
+              :height="nodeToolDrawH"
+              rx="2"
+              stroke-dasharray="6,4"
+            />
+            <text
+              :x="nodeToolDrawX + nodeToolDrawW / 2"
+              :y="nodeToolDrawY + nodeToolDrawH / 2"
+              text-anchor="middle"
+              dominant-baseline="central"
+              font-size="18"
+              font-weight="700"
+            >T</text>
+          </g>
+        </g>
       </g>
     </svg>
     <TextNodeEditorCmp
@@ -308,6 +354,7 @@
 import { computed, ref } from 'vue';
 import './style/theme.css';
 import type { FlowchartNode, FlowchartEdge, FreeLine, CanvasViewport, EdgeDrawingState, AnchorPosition, ResizeHandleId, NodeType } from './types/index.ts';
+import { MIN_NODE_WIDTH, MIN_NODE_HEIGHT } from './types/index.ts';
 import { getAnchorDisplayPoint, getAnchorPoint } from './utils/anchorUtils';
 import { computeOrthogonalWaypoints, buildRoundedPath } from './utils/edgeRouting';
 import { snapToGrid } from './utils/geometry';
@@ -325,6 +372,7 @@ const props = defineProps<{
   nodes: FlowchartNode[]; edges: FlowchartEdge[]; freeLines: FreeLine[]; viewport: CanvasViewport;
   selectedNodeId: string | null; selectedEdgeId: string | null; selectedFreeLineId: string | null;
   lineToolActive: boolean;
+  activeNodeTool: NodeType | null;
   drawingState: EdgeDrawingState | null;
   editingNodeId: string | null;
   editingInfo: { cx: number; cy: number; width: number; text: string; fontSize: number } | null;
@@ -389,6 +437,7 @@ type DragState
     | { type: 'pan'; startPX: number; startPY: number; startPanX: number; startPanY: number }
     | { type: 'edgeHandle'; edgeId: string; handle: 'source' | 'target'; startPX: number; startPY: number }
     | { type: 'freeLine'; startX: number; startY: number }
+    | { type: 'nodeTool'; nodeType: NodeType; startX: number; startY: number; startPX: number; startPY: number }
     | { type: 'freeLineEndpoint'; freeLineId: string; handle: 'start' | 'end'; startX1: number; startY1: number; startX2: number; startY2: number }
     | { type: 'freeLineMove'; freeLineId: string; startX1: number; startY1: number; startX2: number; startY2: number; startPX: number; startPY: number };
 
@@ -398,6 +447,7 @@ const emit = defineEmits<{
   freeLineClick: [freeLineId: string];
   freeLineDraw: [x1: number, y1: number, x2: number, y2: number];
   freeLineMove: [freeLineId: string, x1: number, y1: number, x2: number, y2: number];
+  nodeToolDraw: [nodeType: NodeType, x: number, y: number, width: number, height: number];
   panMove: [panX: number, panY: number];
   nodeDragMove: [nodeId: string, x: number, y: number];
   nodeResize: [nodeId: string, x: number, y: number, w: number, h: number];
@@ -422,12 +472,17 @@ const freeLineDrawX1 = ref(0);
 const freeLineDrawY1 = ref(0);
 const freeLineDrawX2 = ref(0);
 const freeLineDrawY2 = ref(0);
+const nodeToolDrawType = ref<NodeType | null>(null);
+const nodeToolDrawX = ref(0);
+const nodeToolDrawY = ref(0);
+const nodeToolDrawW = ref(0);
+const nodeToolDrawH = ref(0);
 
 const cursorStyle = computed(() => {
   if (drag.type === 'pan') return 'grabbing';
   if (drag.type === 'node' || drag.type === 'clickPending') return 'move';
   if (drag.type === 'resize') return 'default';
-  if (props.lineToolActive) return 'crosshair';
+  if (props.lineToolActive || props.activeNodeTool) return 'crosshair';
   return 'default';
 });
 
@@ -437,6 +492,23 @@ const validEdges = computed(() => props.edges.filter((e) => getNode(e.sourceNode
 const edgeRoutingNodes = computed(() =>
   props.nodes.map((n) => ({ id: n.id, type: n.type, x: n.x, y: n.y, width: n.width, height: n.height })),
 );
+
+const nodeToolDiamondPoints = computed(() => {
+  const x = nodeToolDrawX.value;
+  const y = nodeToolDrawY.value;
+  const w = nodeToolDrawW.value;
+  const h = nodeToolDrawH.value;
+  return `${x + w / 2},${y} ${x + w},${y + h / 2} ${x + w / 2},${y + h} ${x},${y + h / 2}`;
+});
+
+const nodeToolParallelogramPoints = computed(() => {
+  const x = nodeToolDrawX.value;
+  const y = nodeToolDrawY.value;
+  const w = nodeToolDrawW.value;
+  const h = nodeToolDrawH.value;
+  const skew = Math.min(15, w * 0.15);
+  return `${x + skew},${y} ${x + w},${y} ${x + w - skew},${y + h} ${x},${y + h}`;
+});
 
 function getNode(id: string): FlowchartNode | undefined {
   return props.nodes.find((n) => n.id === id);
@@ -502,6 +574,23 @@ function findAnchorNearPoint(nodeId: string, px: number, py: number): AnchorPosi
     if (Math.hypot(px - p.x, py - p.y) < 20) return a;
   }
   return null;
+}
+
+function updateNodeToolPreview(startX: number, startY: number, endX: number, endY: number) {
+  const x1 = snapToGrid(startX, snapSize.value);
+  const y1 = snapToGrid(startY, snapSize.value);
+  const x2 = snapToGrid(endX, snapSize.value);
+  const y2 = snapToGrid(endY, snapSize.value);
+  nodeToolDrawX.value = Math.min(x1, x2);
+  nodeToolDrawY.value = Math.min(y1, y2);
+  nodeToolDrawW.value = Math.max(Math.abs(x2 - x1), MIN_NODE_WIDTH);
+  nodeToolDrawH.value = Math.max(Math.abs(y2 - y1), MIN_NODE_HEIGHT);
+}
+
+function clearNodeToolPreview() {
+  nodeToolDrawType.value = null;
+  nodeToolDrawW.value = 0;
+  nodeToolDrawH.value = 0;
 }
 
 function onPointerDown(event: PointerEvent) {
@@ -654,6 +743,15 @@ function onPointerDown(event: PointerEvent) {
   emit('canvasClick');
 
   // Shift + click OR line tool active on empty canvas: start free line drawing
+  if (props.activeNodeTool) {
+    updateNodeToolPreview(pc.x, pc.y, pc.x, pc.y);
+    nodeToolDrawType.value = props.activeNodeTool;
+    drag = { type: 'nodeTool', nodeType: props.activeNodeTool, startX: pc.x, startY: pc.y, startPX: event.clientX, startPY: event.clientY };
+    svgRef.value!.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    return;
+  }
+
   if (event.shiftKey || props.lineToolActive) {
     const sp = snapToGrid(pc.x, snapSize.value);
     const sy = snapToGrid(pc.y, snapSize.value);
@@ -683,6 +781,11 @@ function onPointerMove(event: PointerEvent) {
     freeLineDrawX2.value = ex;
     freeLineDrawY2.value = ey;
     freeLineDrawPath.value = `M${freeLineDrawX1.value},${freeLineDrawY1.value} L${ex},${ey}`;
+    return;
+  }
+
+  if (drag.type === 'nodeTool') {
+    updateNodeToolPreview(drag.startX, drag.startY, pc.x, pc.y);
     return;
   }
 
@@ -873,6 +976,17 @@ function onPointerUp(event: PointerEvent) {
     return;
   }
 
+  if (drag.type === 'nodeTool') {
+    const moved = Math.abs(event.clientX - drag.startPX) >= MIN_DRAG || Math.abs(event.clientY - drag.startPY) >= MIN_DRAG;
+    if (moved) {
+      emit('nodeToolDraw', drag.nodeType, nodeToolDrawX.value, nodeToolDrawY.value, nodeToolDrawW.value, nodeToolDrawH.value);
+    }
+    clearNodeToolPreview();
+    drag = { type: 'none' };
+    svgRef.value?.releasePointerCapture(event.pointerId);
+    return;
+  }
+
   if (drag.type === 'freeLineMove') {
     drag = { type: 'none' };
     svgRef.value?.releasePointerCapture(event.pointerId);
@@ -933,6 +1047,7 @@ function onPointerUp(event: PointerEvent) {
 
 function onPointerCancel(event: PointerEvent) {
   if (drag.type === 'freeLine') freeLineDrawPath.value = '';
+  if (drag.type === 'nodeTool') clearNodeToolPreview();
   if (drag.type === 'drawing') emit('drawingCancel');
 
   tempEdgePath.value = '';
@@ -985,5 +1100,21 @@ function onDrop(event: DragEvent) {
   height: 100%;
   display: block;
   touch-action: none;
+}
+
+.node-tool-preview {
+  pointer-events: none;
+}
+
+.node-tool-preview rect,
+.node-tool-preview polygon,
+.node-tool-preview ellipse {
+  fill: rgb(74 144 217 / 12%);
+  stroke: #4A90D9;
+  stroke-width: 2;
+}
+
+.node-tool-preview text {
+  fill: #4A90D9;
 }
 </style>
