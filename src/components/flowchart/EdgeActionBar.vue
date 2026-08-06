@@ -7,6 +7,7 @@
       <div
         ref="barRef"
         class="bar-inner"
+        :class="{ 'bar-inner-mobile': mobile }"
       >
         <!-- Left scroll arrow -->
         <button
@@ -84,7 +85,7 @@ defineEmits<{
   pickColor: [color: string];
 }>();
 
-const { locale } = useFlowchartContext();
+const { locale, mobile } = useFlowchartContext();
 const i18n = computed(() => createI18n(locale.value));
 
 const colors = EDGE_PRESET_COLORS;
@@ -165,6 +166,10 @@ watch(() => props.visible, async (v) => {
   pointer-events: auto;
   max-width: calc(100vw - 170px);
   width: fit-content;
+}
+
+.bar-inner-mobile {
+  max-width: calc(100vw - 68px);
 }
 
 .color-scroll {
