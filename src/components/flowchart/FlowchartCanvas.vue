@@ -12,6 +12,7 @@
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
+      @pointercancel="onPointerCancel"
       @wheel.prevent="onWheel"
       @contextmenu.prevent
     >
@@ -162,20 +163,44 @@
             <!-- Endpoint handles when selected -->
             <template v-if="fl.id === selectedFreeLineId">
               <circle
+                :data-freeline-handle="'start'"
+                :data-freeline-id="fl.id"
+                :cx="fl.x1"
+                :cy="fl.y1"
+                r="12"
+                fill="transparent"
+                style="cursor: grab;"
+              />
+              <circle
+                :data-freeline-handle="'start'"
+                :data-freeline-id="fl.id"
                 :cx="fl.x1"
                 :cy="fl.y1"
                 r="5"
                 fill="#4A90D9"
                 stroke="#fff"
                 stroke-width="2"
+                style="pointer-events: none;"
               />
               <circle
+                :data-freeline-handle="'end'"
+                :data-freeline-id="fl.id"
+                :cx="fl.x2"
+                :cy="fl.y2"
+                r="12"
+                fill="transparent"
+                style="cursor: grab;"
+              />
+              <circle
+                :data-freeline-handle="'end'"
+                :data-freeline-id="fl.id"
                 :cx="fl.x2"
                 :cy="fl.y2"
                 r="5"
                 fill="#4A90D9"
                 stroke="#fff"
                 stroke-width="2"
+                style="pointer-events: none;"
               />
             </template>
           </g>
@@ -364,6 +389,7 @@ type DragState
     | { type: 'pan'; startPX: number; startPY: number; startPanX: number; startPanY: number }
     | { type: 'edgeHandle'; edgeId: string; handle: 'source' | 'target'; startPX: number; startPY: number }
     | { type: 'freeLine'; startX: number; startY: number }
+    | { type: 'freeLineEndpoint'; freeLineId: string; handle: 'start' | 'end'; startX1: number; startY1: number; startX2: number; startY2: number }
     | { type: 'freeLineMove'; freeLineId: string; startX1: number; startY1: number; startX2: number; startY2: number; startPX: number; startPY: number };
 
 const emit = defineEmits<{
@@ -529,6 +555,28 @@ function onPointerDown(event: PointerEvent) {
     return;
   }
 
+  const flh = t.closest('[data-freeline-handle]');
+  if (flh) {
+    const flid = flh.getAttribute('data-freeline-id')!;
+    const handle = flh.getAttribute('data-freeline-handle')! as 'start' | 'end';
+    const line = props.freeLines.find((l) => l.id === flid);
+    if (line) {
+      emit('freeLineClick', flid);
+      drag = {
+        type: 'freeLineEndpoint',
+        freeLineId: flid,
+        handle,
+        startX1: line.x1,
+        startY1: line.y1,
+        startX2: line.x2,
+        startY2: line.y2,
+      };
+      svgRef.value!.setPointerCapture(event.pointerId);
+    }
+    event.preventDefault();
+    return;
+  }
+
   const fl = t.closest('[data-freeline-id]');
   if (fl) {
     const flid = fl.getAttribute('data-freeline-id')!;
@@ -627,6 +675,7 @@ function onPointerDown(event: PointerEvent) {
 
 function onPointerMove(event: PointerEvent) {
   const pc = sc(event.clientX, event.clientY);
+  if (drag.type !== 'none' || props.drawingState?.active) event.preventDefault();
 
   if (drag.type === 'freeLine') {
     const ex = snapToGrid(pc.x, snapSize.value);
@@ -648,6 +697,17 @@ function onPointerMove(event: PointerEvent) {
       snapToGrid(drag.startX2 + dx, snapSize.value),
       snapToGrid(drag.startY2 + dy, snapSize.value),
     );
+    return;
+  }
+
+  if (drag.type === 'freeLineEndpoint') {
+    const x = snapToGrid(pc.x, snapSize.value);
+    const y = snapToGrid(pc.y, snapSize.value);
+    if (drag.handle === 'start') {
+      emit('freeLineMove', drag.freeLineId, x, y, drag.startX2, drag.startY2);
+    } else {
+      emit('freeLineMove', drag.freeLineId, drag.startX1, drag.startY1, x, y);
+    }
     return;
   }
 
@@ -819,6 +879,12 @@ function onPointerUp(event: PointerEvent) {
     return;
   }
 
+  if (drag.type === 'freeLineEndpoint') {
+    drag = { type: 'none' };
+    svgRef.value?.releasePointerCapture(event.pointerId);
+    return;
+  }
+
   if (drag.type === 'edgeHandle') {
     if (hoveredNodeId.value && hoveredAnchor.value) {
       emit('edgeReroute', drag.edgeId, drag.handle, hoveredNodeId.value, hoveredAnchor.value);
@@ -865,6 +931,22 @@ function onPointerUp(event: PointerEvent) {
   svgRef.value?.releasePointerCapture(event.pointerId);
 }
 
+function onPointerCancel(event: PointerEvent) {
+  if (drag.type === 'freeLine') freeLineDrawPath.value = '';
+  if (drag.type === 'drawing') emit('drawingCancel');
+
+  tempEdgePath.value = '';
+  hoveredNodeId.value = null;
+  hoveredAnchor.value = null;
+  isDraggingEdgeHandle.value = false;
+  edgeHandleDragEdgeId.value = null;
+  drag = { type: 'none' };
+
+  if (svgRef.value?.hasPointerCapture(event.pointerId)) {
+    svgRef.value.releasePointerCapture(event.pointerId);
+  }
+}
+
 function onWheel(event: WheelEvent) {
   const r = wrapperRef.value?.getBoundingClientRect();
   if (r) emit('canvasWheel', event, r);
@@ -887,6 +969,21 @@ function onDrop(event: DragEvent) {
 </script>
 
 <style scoped>
-.canvas-wrapper { flex: 1; overflow: hidden; position: relative; background: var(--fc-canvas-bg); }
-.flowchart-svg { width: 100%; height: 100%; display: block; }
+.canvas-wrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--fc-canvas-bg);
+  overscroll-behavior: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.flowchart-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
 </style>

@@ -25,8 +25,7 @@ export function useDragFromSidebar(
     return templates.value.find((t) => t.type === type);
   }
 
-  function handleDrop(event: DragEvent, canvasX: number, canvasY: number, snapSize?: number): string | null {
-    const nodeType = event.dataTransfer?.getData('application/x-flowchart-node-type') as NodeType | undefined;
+  function createNodeAt(nodeType: NodeType, canvasX: number, canvasY: number, snapSize?: number): string | null {
     if (!nodeType) return null;
 
     const template = getTemplate(nodeType);
@@ -43,8 +42,15 @@ export function useDragFromSidebar(
     return addNode(nodeType, x, y, w, h);
   }
 
+  function handleDrop(event: DragEvent, canvasX: number, canvasY: number, snapSize?: number): string | null {
+    const nodeType = event.dataTransfer?.getData('application/x-flowchart-node-type') as NodeType | undefined;
+    if (!nodeType) return null;
+    return createNodeAt(nodeType, canvasX, canvasY, snapSize);
+  }
+
   return {
     templates,
+    createNodeAt,
     handleDrop,
   };
 }

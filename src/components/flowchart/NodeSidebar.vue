@@ -15,6 +15,10 @@
       class="sidebar-item"
       draggable="true"
       @dragstart="onDragStart($event, template.type)"
+      @pointerdown="onNodePointerDown($event, template.type)"
+      @pointermove="onNodePointerMove"
+      @pointerup="onNodePointerUp"
+      @pointercancel="onNodePointerCancel"
     >
       <svg
         :width="32"
@@ -96,6 +100,10 @@
       draggable="true"
       @dragstart="onDragStartLine"
       @click="onToggleLineTool"
+      @pointerdown="onLinePointerDown"
+      @pointermove="onLinePointerMove"
+      @pointerup="onLinePointerUp"
+      @pointercancel="onLinePointerCancel"
     >
       <svg
         width="32"
@@ -107,7 +115,7 @@
           y1="20"
           x2="28"
           y2="4"
-          :stroke="lineToolActive ? '#4A90D9' : 'var(--fc-sidebar-icon-stroke)'"
+          :stroke="lineToolActive ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
           stroke-width="2"
           stroke-linecap="round"
         />
@@ -115,13 +123,13 @@
           cx="4"
           cy="20"
           r="2"
-          :fill="lineToolActive ? '#4A90D9' : 'var(--fc-sidebar-icon-stroke)'"
+          :fill="lineToolActive ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
         />
         <circle
           cx="28"
           cy="4"
           r="2"
-          :fill="lineToolActive ? '#4A90D9' : 'var(--fc-sidebar-icon-stroke)'"
+          :fill="lineToolActive ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
         />
       </svg>
       <span
@@ -146,6 +154,14 @@ defineProps<{
 
 const emit = defineEmits<{
   toggleLineTool: [];
+  nodePointerDragStart: [nodeType: NodeType, clientX: number, clientY: number];
+  nodePointerDragMove: [clientX: number, clientY: number];
+  nodePointerDragEnd: [clientX: number, clientY: number];
+  nodePointerDragCancel: [];
+  linePointerDragStart: [clientX: number, clientY: number];
+  linePointerDragMove: [clientX: number, clientY: number];
+  linePointerDragEnd: [clientX: number, clientY: number];
+  linePointerDragCancel: [];
 }>();
 
 const locale = inject(localeKey);
@@ -156,18 +172,116 @@ const i18n = computed(() => createI18n(locale?.value ?? 'zh-CN'));
 const sidebarTitle = computed(() => i18n.value.t('sidebar.title'));
 const lineToolLabel = computed(() => i18n.value.t('sidebar.freeLine'));
 
+let nodeDragPointerId: number | null = null;
+let lineDragPointerId: number | null = null;
+let lineDragStartX = 0;
+let lineDragStartY = 0;
+let lineDragMoved = false;
+let suppressNextLineClick = false;
+const POINTER_DRAG_THRESHOLD = 4;
+
 function onDragStart(event: DragEvent, type: NodeType) {
   event.dataTransfer?.setData('application/x-flowchart-node-type', type);
   event.dataTransfer!.effectAllowed = 'copy';
 }
 
+function shouldUsePointerDrag(event: PointerEvent): boolean {
+  return isMobile.value || event.pointerType === 'touch' || event.pointerType === 'pen';
+}
+
+function onNodePointerDown(event: PointerEvent, type: NodeType) {
+  if (!shouldUsePointerDrag(event)) return;
+  nodeDragPointerId = event.pointerId;
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  emit('nodePointerDragStart', type, event.clientX, event.clientY);
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function onNodePointerMove(event: PointerEvent) {
+  if (event.pointerId !== nodeDragPointerId) return;
+  emit('nodePointerDragMove', event.clientX, event.clientY);
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function onNodePointerUp(event: PointerEvent) {
+  if (event.pointerId !== nodeDragPointerId) return;
+  nodeDragPointerId = null;
+  const target = event.currentTarget as HTMLElement;
+  if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
+  emit('nodePointerDragEnd', event.clientX, event.clientY);
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function onNodePointerCancel(event: PointerEvent) {
+  if (event.pointerId !== nodeDragPointerId) return;
+  nodeDragPointerId = null;
+  const target = event.currentTarget as HTMLElement;
+  if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
+  emit('nodePointerDragCancel');
+}
+
 function onToggleLineTool() {
+  if (suppressNextLineClick) {
+    suppressNextLineClick = false;
+    return;
+  }
+  if (lineDragPointerId !== null) return;
   emit('toggleLineTool');
 }
 
 function onDragStartLine(event: DragEvent) {
   event.dataTransfer?.setData('application/x-flowchart-freeline', '1');
   event.dataTransfer!.effectAllowed = 'copy';
+}
+
+function onLinePointerDown(event: PointerEvent) {
+  if (!shouldUsePointerDrag(event)) return;
+  lineDragPointerId = event.pointerId;
+  lineDragStartX = event.clientX;
+  lineDragStartY = event.clientY;
+  lineDragMoved = false;
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function onLinePointerMove(event: PointerEvent) {
+  if (event.pointerId !== lineDragPointerId) return;
+  const moved = Math.hypot(event.clientX - lineDragStartX, event.clientY - lineDragStartY) >= POINTER_DRAG_THRESHOLD;
+  if (moved && !lineDragMoved) {
+    lineDragMoved = true;
+    emit('linePointerDragStart', lineDragStartX, lineDragStartY);
+  }
+  if (lineDragMoved) emit('linePointerDragMove', event.clientX, event.clientY);
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function onLinePointerUp(event: PointerEvent) {
+  if (event.pointerId !== lineDragPointerId) return;
+  lineDragPointerId = null;
+  suppressNextLineClick = true;
+  const target = event.currentTarget as HTMLElement;
+  if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
+  if (lineDragMoved) {
+    emit('linePointerDragEnd', event.clientX, event.clientY);
+  } else {
+    emit('toggleLineTool');
+  }
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function onLinePointerCancel(event: PointerEvent) {
+  if (event.pointerId !== lineDragPointerId) return;
+  lineDragPointerId = null;
+  lineDragMoved = false;
+  const target = event.currentTarget as HTMLElement;
+  if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
+  emit('linePointerDragCancel');
 }
 </script>
 
@@ -214,6 +328,8 @@ function onDragStartLine(event: DragEvent) {
   transition: background 0.15s;
   border-radius: 4px;
   margin: 0 4px;
+  touch-action: none;
+  user-select: none;
 }
 
 .sidebar-item:hover {

@@ -11,7 +11,111 @@
       :templates="templates"
       :line-tool-active="lineToolActive"
       @toggle-line-tool="toggleLineTool"
+      @node-pointer-drag-start="onSidebarNodePointerDragStart"
+      @node-pointer-drag-move="onSidebarNodePointerDragMove"
+      @node-pointer-drag-end="onSidebarNodePointerDragEnd"
+      @node-pointer-drag-cancel="onSidebarNodePointerDragCancel"
+      @line-pointer-drag-start="onSidebarLinePointerDragStart"
+      @line-pointer-drag-move="onSidebarLinePointerDragMove"
+      @line-pointer-drag-end="onSidebarLinePointerDragEnd"
+      @line-pointer-drag-cancel="onSidebarLinePointerDragCancel"
     />
+    <div
+      v-if="sidebarDragGhost"
+      class="sidebar-drag-ghost"
+      :style="sidebarDragGhostStyle"
+    >
+      <svg
+        :width="32"
+        :height="24"
+        class="sidebar-drag-ghost-icon"
+      >
+        <rect
+          v-if="sidebarDragGhost.kind === 'node' && sidebarDragGhost.nodeType === 'rectangle'"
+          x="2"
+          y="2"
+          width="28"
+          height="20"
+          rx="3"
+          fill="var(--fc-sidebar-icon-fill)"
+          stroke="var(--fc-sidebar-icon-stroke)"
+          stroke-width="1.5"
+        />
+        <polygon
+          v-if="sidebarDragGhost.kind === 'node' && sidebarDragGhost.nodeType === 'diamond'"
+          :points="`16,1 30,12 16,23 2,12`"
+          fill="var(--fc-sidebar-icon-fill)"
+          stroke="var(--fc-sidebar-icon-stroke)"
+          stroke-width="1.5"
+        />
+        <ellipse
+          v-if="sidebarDragGhost.kind === 'node' && sidebarDragGhost.nodeType === 'ellipse'"
+          cx="16"
+          cy="12"
+          rx="14"
+          ry="10"
+          fill="var(--fc-sidebar-icon-fill)"
+          stroke="var(--fc-sidebar-icon-stroke)"
+          stroke-width="1.5"
+        />
+        <polygon
+          v-if="sidebarDragGhost.kind === 'node' && sidebarDragGhost.nodeType === 'parallelogram'"
+          points="6,2 30,2 26,22 2,22"
+          fill="var(--fc-sidebar-icon-fill)"
+          stroke="var(--fc-sidebar-icon-stroke)"
+          stroke-width="1.5"
+        />
+        <g v-if="sidebarDragGhost.kind === 'node' && sidebarDragGhost.nodeType === 'text'">
+          <rect
+            x="2"
+            y="3"
+            width="28"
+            height="18"
+            rx="2"
+            fill="var(--fc-sidebar-icon-fill)"
+            stroke="var(--fc-sidebar-icon-stroke)"
+            stroke-width="1.5"
+            stroke-dasharray="3,2"
+          />
+          <text
+            x="16"
+            y="16"
+            text-anchor="middle"
+            font-size="12"
+            fill="var(--fc-sidebar-icon-stroke)"
+            font-weight="bold"
+            font-family="serif"
+          >T</text>
+        </g>
+        <g v-if="sidebarDragGhost.kind === 'line'">
+          <line
+            x1="4"
+            y1="20"
+            x2="28"
+            y2="4"
+            stroke="var(--fc-sidebar-icon-stroke)"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+          <circle
+            cx="4"
+            cy="20"
+            r="2"
+            fill="var(--fc-sidebar-icon-stroke)"
+          />
+          <circle
+            cx="28"
+            cy="4"
+            r="2"
+            fill="var(--fc-sidebar-icon-stroke)"
+          />
+        </g>
+      </svg>
+      <span
+        v-if="!resolvedMobile"
+        class="sidebar-drag-ghost-label"
+      >{{ sidebarDragGhost.label }}</span>
+    </div>
     <div
       ref="canvasAreaRef"
       class="canvas-area"
@@ -216,6 +320,7 @@ import { useKeyboard } from './composables/useKeyboard';
 import { themeKey, localeKey, mobileKey } from './composables/useFlowchartContext';
 import { createI18n } from './composables/useFlowchartI18n';
 import { getAnchorDisplayPoint } from './utils/anchorUtils';
+import { snapToGrid } from './utils/geometry';
 import { DEFAULT_COLOR, EDGE_DEFAULT_COLOR } from './utils/colorUtils';
 import { generateId } from './utils/idGenerator';
 import NodeSidebar from './NodeSidebar.vue';
@@ -277,6 +382,42 @@ const deleteButtonTitle = computed(() => {
 });
 const lineToolActive = ref(false);
 const canvasAreaRef = ref<HTMLElement | null>(null);
+const sidebarNodeDrag = ref<{ nodeType: NodeType; clientX: number; clientY: number } | null>(null);
+const sidebarLineDrag = ref<{ clientX: number; clientY: number } | null>(null);
+
+const sidebarDragGhost = computed(() => {
+  const nodeDrag = sidebarNodeDrag.value;
+  if (nodeDrag) {
+    return {
+      kind: 'node' as const,
+      nodeType: nodeDrag.nodeType,
+      label: templates.value.find((template) => template.type === nodeDrag.nodeType)?.label ?? '',
+      clientX: nodeDrag.clientX,
+      clientY: nodeDrag.clientY,
+    };
+  }
+
+  const lineDrag = sidebarLineDrag.value;
+  if (lineDrag) {
+    return {
+      kind: 'line' as const,
+      label: i18n.value.t('sidebar.freeLine'),
+      clientX: lineDrag.clientX,
+      clientY: lineDrag.clientY,
+    };
+  }
+
+  return null;
+});
+
+const sidebarDragGhostStyle = computed(() => {
+  const ghost = sidebarDragGhost.value;
+  if (!ghost) return {};
+  return {
+    left: `${ghost.clientX}px`,
+    top: `${ghost.clientY}px`,
+  };
+});
 
 function toggleLineTool() {
   lineToolActive.value = !lineToolActive.value;
@@ -594,6 +735,7 @@ function onFreeLineClick(freeLineId: string) {
 }
 function onFreeLineDraw(x1: number, y1: number, x2: number, y2: number) {
   model.addFreeLine(x1, y1, x2, y2);
+  if (lineToolActive.value) lineToolActive.value = false;
 }
 
 function onFreeLineMove(freeLineId: string, x1: number, y1: number, x2: number, y2: number) {
@@ -618,12 +760,86 @@ function onDrawingUpdate(cx: number, cy: number) {
   if (isDrawing()) updateDrawing(cx, cy);
 }
 function onCanvasDrop(nodeType: NodeType, cx: number, cy: number, snapSize: number) {
-  sidebar.handleDrop(
-    { dataTransfer: { getData: () => nodeType } } as unknown as DragEvent,
-    cx,
-    cy,
-    snapSize,
-  );
+  sidebar.createNodeAt(nodeType, cx, cy, snapSize);
+}
+
+function canvasPointFromClient(clientX: number, clientY: number) {
+  const rect = canvasAreaRef.value?.getBoundingClientRect();
+  if (!rect) return null;
+  return {
+    x: (clientX - rect.left - viewport.value.panX) / viewport.value.zoom,
+    y: (clientY - rect.top - viewport.value.panY) / viewport.value.zoom,
+  };
+}
+
+function isClientPointInCanvas(clientX: number, clientY: number): boolean {
+  const rect = canvasAreaRef.value?.getBoundingClientRect();
+  if (!rect) return false;
+  return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+}
+
+function currentSnapSize(): number {
+  const z = viewport.value.zoom;
+  if (z >= 10) return GRID_SIZE / 10;
+  if (z >= 5) return GRID_SIZE / 5;
+  if (z >= 2) return GRID_SIZE / 2;
+  if (z <= 0.1) return GRID_SIZE * 8;
+  if (z <= 0.25) return GRID_SIZE * 4;
+  if (z <= 0.5) return GRID_SIZE * 2;
+  return GRID_SIZE;
+}
+
+function onSidebarNodePointerDragStart(nodeType: NodeType, clientX: number, clientY: number) {
+  sidebarNodeDrag.value = { nodeType, clientX, clientY };
+}
+
+function onSidebarNodePointerDragMove(clientX: number, clientY: number) {
+  if (!sidebarNodeDrag.value) return;
+  sidebarNodeDrag.value = { ...sidebarNodeDrag.value, clientX, clientY };
+}
+
+function onSidebarNodePointerDragEnd(clientX: number, clientY: number) {
+  const drag = sidebarNodeDrag.value;
+  sidebarNodeDrag.value = null;
+  if (!drag || !isClientPointInCanvas(clientX, clientY)) return;
+  const point = canvasPointFromClient(clientX, clientY);
+  if (!point) return;
+  sidebar.createNodeAt(drag.nodeType, point.x, point.y, currentSnapSize());
+}
+
+function onSidebarNodePointerDragCancel() {
+  sidebarNodeDrag.value = null;
+}
+
+function createFreeLineAtClient(clientX: number, clientY: number) {
+  if (!isClientPointInCanvas(clientX, clientY)) return;
+  const point = canvasPointFromClient(clientX, clientY);
+  if (!point) return;
+  const ss = currentSnapSize();
+  const cx = snapToGrid(point.x, ss);
+  const cy = snapToGrid(point.y, ss);
+  const defLen = snapToGrid(120, ss);
+  model.addFreeLine(cx - defLen / 2, cy, cx + defLen / 2, cy);
+}
+
+function onSidebarLinePointerDragStart(clientX: number, clientY: number) {
+  sidebarLineDrag.value = { clientX, clientY };
+}
+
+function onSidebarLinePointerDragMove(clientX: number, clientY: number) {
+  if (!sidebarLineDrag.value) return;
+  sidebarLineDrag.value = { clientX, clientY };
+}
+
+function onSidebarLinePointerDragEnd(clientX: number, clientY: number) {
+  const drag = sidebarLineDrag.value;
+  sidebarLineDrag.value = null;
+  if (!drag) return;
+  createFreeLineAtClient(clientX, clientY);
+}
+
+function onSidebarLinePointerDragCancel() {
+  sidebarLineDrag.value = null;
 }
 function onCanvasWheel(event: WheelEvent, rect: DOMRect) {
   handleWheel(event, rect);
@@ -725,6 +941,35 @@ function onPickEdgeOrLineColor(color: string) {
   flex-direction: column;
   gap: 2px;
   z-index: 50;
+}
+
+.sidebar-drag-ghost {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--fc-sidebar-border, #ddd);
+  border-radius: 4px;
+  background: var(--fc-sidebar-bg, #f5f5f5);
+  color: var(--fc-sidebar-label-color, #333);
+  box-shadow: 0 8px 22px rgb(0 0 0 / 18%);
+  opacity: 0.82;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.sidebar-drag-ghost-icon {
+  flex-shrink: 0;
+}
+
+.sidebar-drag-ghost-label {
+  font-size: 12px;
+  color: var(--fc-sidebar-label-color, #333);
+  white-space: nowrap;
 }
 
 .canvas-tb-btn {
