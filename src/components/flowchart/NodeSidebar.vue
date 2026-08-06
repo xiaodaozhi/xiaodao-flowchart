@@ -36,7 +36,7 @@
           height="20"
           rx="3"
           fill="var(--fc-sidebar-icon-fill)"
-          :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
+          stroke="var(--fc-sidebar-icon-stroke)"
           stroke-width="1.5"
         />
         <!-- Diamond -->
@@ -44,7 +44,7 @@
           v-if="template.type === 'diamond'"
           :points="`16,1 30,12 16,23 2,12`"
           fill="var(--fc-sidebar-icon-fill)"
-          :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
+          stroke="var(--fc-sidebar-icon-stroke)"
           stroke-width="1.5"
         />
         <!-- Ellipse -->
@@ -55,7 +55,7 @@
           rx="14"
           ry="10"
           fill="var(--fc-sidebar-icon-fill)"
-          :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
+          stroke="var(--fc-sidebar-icon-stroke)"
           stroke-width="1.5"
         />
         <!-- Parallelogram -->
@@ -63,7 +63,7 @@
           v-if="template.type === 'parallelogram'"
           points="6,2 30,2 26,22 2,22"
           fill="var(--fc-sidebar-icon-fill)"
-          :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
+          stroke="var(--fc-sidebar-icon-stroke)"
           stroke-width="1.5"
         />
         <!-- Text -->
@@ -75,7 +75,7 @@
             height="18"
             rx="2"
             fill="var(--fc-sidebar-icon-fill)"
-            :stroke="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
+            stroke="var(--fc-sidebar-icon-stroke)"
             stroke-width="1.5"
             stroke-dasharray="3,2"
           />
@@ -84,7 +84,7 @@
             y="16"
             text-anchor="middle"
             font-size="12"
-            :fill="selectedNodeTool === template.type ? 'currentColor' : 'var(--fc-sidebar-icon-stroke)'"
+            fill="var(--fc-sidebar-icon-stroke)"
             font-weight="bold"
             font-family="serif"
           >T</text>
