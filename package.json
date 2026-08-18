@@ -1,6 +1,6 @@
 {
   "name": "xiaodao-flowchart",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Vue 3 component for flowchart drawing",
   "type": "module",
   "license": "MIT",
@@ -47,5 +47,13 @@
     "typescript": "~6.0.2",
     "vite": "^8.2.0",
     "vue-tsc": "^3.3.8"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaodaozhi/xiaodao-flowchart.git"
   }
 }
