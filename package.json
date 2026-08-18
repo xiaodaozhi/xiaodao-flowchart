@@ -1,18 +1,46 @@
 {
   "name": "xiaodao-flowchart",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "A Vue 3 component for flowchart drawing",
   "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "vue",
+    "flowchart",
+    "drawing"
+  ],
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/xiaodao-flowchart.umd.cjs",
+  "module": "./dist/xiaodao-flowchart.es.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/xiaodao-flowchart.es.js",
+      "require": "./dist/xiaodao-flowchart.umd.cjs"
+    },
+    "./style.css": "./dist/xiaodao-flowchart.css",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "typecheck": "vue-tsc -b",
+    "build": "vue-tsc -b && vite build && vue-tsc --emitDeclarationOnly -p tsconfig.build.json",
     "preview": "vite preview"
   },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  },
   "dependencies": {
-    "nanoid": "^5.1.16",
-    "vue": "^3.5.40"
+    "nanoid": "^5.1.16"
   },
   "devDependencies": {
+    "vue": "^3.5.40",
     "@types/node": "^24.13.3",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",

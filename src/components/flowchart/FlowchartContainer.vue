@@ -313,7 +313,7 @@
 
 <script setup lang="ts">
 import { ref, computed, toRef, type Ref, provide, watch, onMounted, onUnmounted, nextTick } from 'vue';
-import type { FlowchartData, AnchorPosition, NodeType, Theme, Locale } from './types/index.ts';
+import type { FlowchartData, AnchorPosition, NodeType, Theme, Locale } from './types/index';
 import { GRID_SIZE } from './types/index';
 import { useFlowchartModel } from './composables/useFlowchartModel';
 import { useSelection } from './composables/useSelection';

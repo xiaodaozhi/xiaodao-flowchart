@@ -353,7 +353,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import './style/theme.css';
-import type { FlowchartNode, FlowchartEdge, FreeLine, CanvasViewport, EdgeDrawingState, AnchorPosition, ResizeHandleId, NodeType } from './types/index.ts';
+import type { FlowchartNode, FlowchartEdge, FreeLine, CanvasViewport, EdgeDrawingState, AnchorPosition, ResizeHandleId, NodeType } from './types/index';
 import { MIN_NODE_WIDTH, MIN_NODE_HEIGHT } from './types';
 import { getAnchorDisplayPoint, getAnchorPoint } from './utils/anchorUtils';
 import { computeOrthogonalWaypoints, buildRoundedPath } from './utils/edgeRouting';
