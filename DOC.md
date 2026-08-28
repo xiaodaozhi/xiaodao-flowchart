@@ -1,4 +1,4 @@
-# xiaodao-flowchart — Architecture Design
+# xiaodao-flowchart: Architecture Design
 
 This document describes the internal architecture of the `xiaodao-flowchart` component: how the layers are organized, how data flows, how rendering and interaction work, and how the major subsystems (routing, theming, i18n, history) are implemented. It is intended for contributors and for anyone who wants to extend or embed the component.
 
@@ -139,14 +139,14 @@ This keeps `FlowchartCanvas` a "dumb" renderer/interaction surface and `Flowchar
 `FlowchartCanvas` renders a single `<svg>` that fills its wrapper. Inside it:
 
 - **Screen-space grid.** `<pattern>` definitions (dot grid) are painted as full-size `<rect>`s *outside* the transform group, so the grid stays aligned to the screen and scales with zoom via `gridScreenPx = BASE * level * zoom`.
-- **World-space content.** A single `<g :transform="translate(panX, panY) scale(zoom)">` contains everything that lives in diagram coordinates: edges, free lines, the in-progress drawing, nodes, and handles. Panning and zooming are achieved purely by updating this transform — no per-element recomputation.
+- **World-space content.** A single `<g :transform="translate(panX, panY) scale(zoom)">` contains everything that lives in diagram coordinates: edges, free lines, the in-progress drawing, nodes, and handles. Panning and zooming are achieved purely by updating this transform, no per-element recomputation.
 
 ### 4.2 Coordinate systems
 
 Two coordinate spaces are used:
 
-- **Screen space** — pixels relative to the SVG element (pointer `clientX/Y` minus bounding rect).
-- **World space** — diagram coordinates stored in `FlowchartData`.
+- **Screen space**: pixels relative to the SVG element (pointer `clientX/Y` minus bounding rect).
+- **World space**: diagram coordinates stored in `FlowchartData`.
 
 Conversion (see `useCanvasPanZoom.screenToCanvas` and the local `sc()` helper in the canvas):
 
@@ -298,8 +298,8 @@ A separate `paste` event listener handles `Ctrl+V` so system-clipboard text can 
 
 The component is shipped as a **Vue library** via Vite's `build.lib` mode (configured in `vite.config.ts`):
 
-- **Library build (`npm run build`)** — entry `src/components/flowchart/index.ts`; formats `es` + `umd`; `vue` externalized. Output goes to `dist/` (`xiaodao-flowchart.es.js`, `xiaodao-flowchart.umd.cjs`, `xiaodao-flowchart.css`) plus `.d.ts` types. `publicDir` is disabled so demo assets are excluded.
-- **Demo build (`npm run build:demo`)** — `vite build --mode demo` switches the config to a normal **app** build (entry `index.html` → `App.vue`) into `dist-demo/`, with `publicDir: 'public'` so favicons/assets are copied. This is useful for deploying a live demo; `dist-demo/` is git-ignored, like `dist/`.
+- **Library build (`npm run build`)**: entry `src/components/flowchart/index.ts`; formats `es` + `umd`; `vue` externalized. Output goes to `dist/` (`xiaodao-flowchart.es.js`, `xiaodao-flowchart.umd.cjs`, `xiaodao-flowchart.css`) plus `.d.ts` types. `publicDir` is disabled so demo assets are excluded.
+- **Demo build (`npm run build:demo`)**: `vite build --mode demo` switches the config to a normal **app** build (entry `index.html` → `App.vue`) into `dist-demo/`, with `publicDir: 'public'` so favicons/assets are copied. This is useful for deploying a live demo; `dist-demo/` is git-ignored, like `dist/`.
 - `package.json` `files: ["dist"]` ensures only the library bundle is published to npm; `dist-demo` is naturally excluded.
 
 ---
@@ -310,7 +310,7 @@ The component is shipped as a **Vue library** via Vite's `build.lib` mode (confi
 - **New language:** extend `messages` + `I18nKey` in `useFlowchartI18n.ts`.
 - **Custom theme:** override `--fc-*` variables after importing the stylesheet.
 - **Custom routing:** replace `computeOrthogonalWaypoints` / `buildRoundedPath` in `utils/edgeRouting.ts`; the rest of the stack consumes only the resulting `d` string.
-- **Custom persistence:** because state is a plain `FlowchartData` object, you can serialize/restore it (e.g. `JSON.stringify(data.value)`) directly — no proprietary format.
+- **Custom persistence:** because state is a plain `FlowchartData` object, you can serialize/restore it (e.g. `JSON.stringify(data.value)`) directly, no proprietary format.
 
 ---
 

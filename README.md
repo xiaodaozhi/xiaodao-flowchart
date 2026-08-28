@@ -2,7 +2,7 @@
 
 > A pure front-end, interactive flowchart editor component built with **Vue 3 + TypeScript + Vite**.
 
-`xiaodao-flowchart` is a self-contained Vue 3 component for drawing flowcharts directly in the browser. It ships a full editing experience — multiple node shapes, smart orthogonal edge routing, pan/zoom canvas, inline text editing, undo/redo, theming, and i18n — while staying data-driven through a single `v-model` source of truth.
+`xiaodao-flowchart` is a self-contained Vue 3 component for drawing flowcharts directly in the browser. It ships a full editing experience, multiple node shapes, smart orthogonal edge routing, pan/zoom canvas, inline text editing, undo/redo, theming, and i18n, while staying data-driven through a single `v-model` source of truth.
 
 ![Preview](./img/preview.png)
 
@@ -31,21 +31,21 @@
 
 ## Features
 
-- **5 node types** — Rectangle, diamond, ellipse, parallelogram, and free-text nodes. All support drag, resize, inline label editing, and custom styling.
-- **Smart orthogonal edges** — Automatic orthogonal path routing with multi-segment polylines, node self-avoidance, and third-party node detour.
-- **Draggable edge handles** — Selected edges display draggable source/target endpoint handles for reconnecting to other nodes (re-routing).
-- **Free lines** — Draw standalone connector lines on the canvas (independent of nodes), with selectable/movable endpoints.
-- **Canvas controls** — Mouse-wheel zoom (0.1× – 10×), right/middle-click pan, and an adaptive multi-level dot grid.
-- **Node sidebar** — Drag node templates from the sidebar onto the canvas to create nodes. Responsive layout (auto-collapses on mobile).
-- **8-way resize** — 8 resize handles appear on selected nodes, with aspect-ratio constraints and minimum-size enforcement.
-- **Inline text editing** — Double-click a node to enter edit mode with multi-line text support.
-- **Light / dark themes** — Driven by CSS custom properties (60+ variables covering every UI element). Toggle via the `theme` prop.
-- **Internationalization** — Built-in Chinese (`zh-CN`) and English (`en-US`). Switch via the `locale` prop.
-- **Preset color palettes** — 18 colors for nodes + 15 colors for edges, with automatic text-contrast calculation (black/white).
-- **Keyboard shortcuts** — Undo/Redo (`Ctrl+Z`/`Y`), Cut/Copy/Paste (`Ctrl+X`/`C`/`V`), Delete/Backspace to remove, arrow keys to nudge (`Shift` accelerates 4×), Escape to cancel.
-- **External text paste** — Paste plain text from the system clipboard to create a text node at the viewport center.
-- **`v-model` data-driven** — Single source of truth with two-way binding via the `update:modelValue` event.
-- **Full TypeScript coverage** — Complete type definitions, with composable and model types exported for external use.
+- **5 node types**: Rectangle, diamond, ellipse, parallelogram, and free-text nodes. All support drag, resize, inline label editing, and custom styling.
+- **Smart orthogonal edges**: Automatic orthogonal path routing with multi-segment polylines, node self-avoidance, and third-party node detour.
+- **Draggable edge handles**: Selected edges display draggable source/target endpoint handles for reconnecting to other nodes (re-routing).
+- **Free lines**: Draw standalone connector lines on the canvas (independent of nodes), with selectable/movable endpoints.
+- **Canvas controls**: Mouse-wheel zoom (0.1× – 10×), right/middle-click pan, and an adaptive multi-level dot grid.
+- **Node sidebar**: Drag node templates from the sidebar onto the canvas to create nodes. Responsive layout (auto-collapses on mobile).
+- **8-way resize**: 8 resize handles appear on selected nodes, with aspect-ratio constraints and minimum-size enforcement.
+- **Inline text editing**: Double-click a node to enter edit mode with multi-line text support.
+- **Light / dark themes**: Driven by CSS custom properties (60+ variables covering every UI element). Toggle via the `theme` prop.
+- **Internationalization**: Built-in Chinese (`zh-CN`) and English (`en-US`). Switch via the `locale` prop.
+- **Preset color palettes**: 18 colors for nodes + 15 colors for edges, with automatic text-contrast calculation (black/white).
+- **Keyboard shortcuts**: Undo/Redo (`Ctrl+Z`/`Y`), Cut/Copy/Paste (`Ctrl+X`/`C`/`V`), Delete/Backspace to remove, arrow keys to nudge (`Shift` accelerates 4×), Escape to cancel.
+- **External text paste**: Paste plain text from the system clipboard to create a text node at the viewport center.
+- **`v-model` data-driven**: Single source of truth with two-way binding via the `update:modelValue` event.
+- **Full TypeScript coverage**: Complete type definitions, with composable and model types exported for external use.
 
 ---
 
@@ -126,7 +126,7 @@ const data = ref<FlowchartData>({
     { id: 'e1', sourceNodeId: 'start', sourceAnchor: 'bottom', targetNodeId: 'decision', targetAnchor: 'top' },
     { id: 'e2', sourceNodeId: 'decision', sourceAnchor: 'bottom', targetNodeId: 'end', targetAnchor: 'top' },
   ],
-  // freeLines?: FreeLine[] — optional standalone connector lines
+  // freeLines?: FreeLine[], optional standalone connector lines
 })
 
 function onNodeSelect(nodeId: string | null) { /* ... */ }
@@ -142,12 +142,12 @@ function onNodeDblClick(nodeId: string) { /* ... */ }
 
 | Prop         | Type                         | Default   | Description                                                        |
 |--------------|------------------------------|-----------|--------------------------------------------------------------------|
-| `modelValue` | `FlowchartData`              | —         | Flowchart data, bound with `v-model` (two-way).                    |
+| `modelValue` | `FlowchartData`              | | Flowchart data, bound with `v-model` (two-way).                    |
 | `theme`      | `'light' \| 'dark'`          | `'light'` | Color theme.                                                       |
 | `locale`     | `'zh-CN' \| 'en-US'`         | `'zh-CN'` | UI language.                                                       |
-| `mobile`     | `boolean`                    | `false`   | Mobile mode — collapses the sidebar and optimizes touch handling.  |
-| `width`      | `string \| number`           | —         | Container width (number → pixels). Defaults to `100%`.             |
-| `height`     | `string \| number`           | —         | Container height (number → pixels). Defaults to `100%`/`100vh`.    |
+| `mobile`     | `boolean`                    | `false`   | Mobile mode, collapses the sidebar and optimizes touch handling.  |
+| `width`      | `string \| number`           | | Container width (number → pixels). Defaults to `100%`.             |
+| `height`     | `string \| number`           | | Container height (number → pixels). Defaults to `100%`/`100vh`.    |
 
 ---
 
@@ -335,12 +335,12 @@ For a deep dive into how these pieces fit together, see **[DOC.md](./DOC.md)**.
 
 The component implements a complete orthogonal edge-routing engine (`utils/edgeRouting.ts`):
 
-- **Basic path construction** — Automatically selects L-shaped, Z-shaped, or U-shaped polyline paths based on source/target anchor directions.
-- **Node self-avoidance** — Paths automatically avoid the source and target nodes themselves during generation.
-- **Third-party node detour** — Detects when a path would pass through other nodes and generates detour polylines.
-- **Grid-based path search** — For complex scenarios, builds a grid graph and uses a Dijkstra shortest-path search with turn penalties.
-- **Path cleaning** — Automatically merges collinear segments and deduplicates consecutive points.
-- **Rounded corners** — `buildRoundedPath` produces smooth rounded corners (`cornerRadius`, default `8`).
+- **Basic path construction**: Automatically selects L-shaped, Z-shaped, or U-shaped polyline paths based on source/target anchor directions.
+- **Node self-avoidance**: Paths automatically avoid the source and target nodes themselves during generation.
+- **Third-party node detour**: Detects when a path would pass through other nodes and generates detour polylines.
+- **Grid-based path search**: For complex scenarios, builds a grid graph and uses a Dijkstra shortest-path search with turn penalties.
+- **Path cleaning**: Automatically merges collinear segments and deduplicates consecutive points.
+- **Rounded corners**: `buildRoundedPath` produces smooth rounded corners (`cornerRadius`, default `8`).
 
 Arrowheads are rendered as per-color SVG `<marker>` definitions (one marker per distinct stroke color) so they work across browsers including iOS Safari.
 

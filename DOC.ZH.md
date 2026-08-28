@@ -1,4 +1,4 @@
-# xiaodao-flowchart —— 架构设计
+# xiaodao-flowchart 架构设计
 
 本文档描述 `xiaodao-flowchart` 组件的内部架构：各层如何组织、数据如何流动、渲染与交互如何实现，以及路由、主题、国际化、历史记录等核心子系统的实现方式。目标读者是贡献者，以及希望扩展或嵌入该组件的开发者。
 
@@ -139,14 +139,14 @@ function addNode(/* ... */): string {
 `FlowchartCanvas` 渲染一个填满容器的 `<svg>`。其内部：
 
 - **屏幕空间网格。** `<pattern>` 定义（点阵网格）以全尺寸 `<rect>` 的形式绘制在变换组**之外**，因此网格始终贴合屏幕，并随缩放通过 `gridScreenPx = BASE * level * zoom` 变化。
-- **世界空间内容。** 一个 `<g :transform="translate(panX, panY) scale(zoom)">` 包含一切位于图坐标中的元素：连线、自由线、进行中的绘制、节点与手柄。平移与缩放仅通过更新此变换实现——无需逐元素重算。
+- **世界空间内容。** 一个 `<g :transform="translate(panX, panY) scale(zoom)">` 包含一切位于图坐标中的元素：连线、自由线、进行中的绘制、节点与手柄。平移与缩放仅通过更新此变换实现，无需逐元素重算。
 
 ### 4.2 坐标系
 
 使用两套坐标系：
 
-- **屏幕空间** —— 相对于 SVG 元素的像素（`pointer` 的 `clientX/Y` 减去包围盒）。
-- **世界空间** —— 存储在 `FlowchartData` 中的图坐标。
+- **屏幕空间**：相对于 SVG 元素的像素（`pointer` 的 `clientX/Y` 减去包围盒）。
+- **世界空间**：存储在 `FlowchartData` 中的图坐标。
 
 转换方式（见 `useCanvasPanZoom.screenToCanvas` 与画布内的本地 `sc()` 辅助函数）：
 
@@ -298,8 +298,8 @@ const historyIndex = ref(-1)
 
 该组件以 Vite 的 `build.lib` 模式作为 **Vue 库**发布（配置见 `vite.config.ts`）：
 
-- **库构建（`npm run build`）** —— 入口 `src/components/flowchart/index.ts`；格式 `es` + `umd`；`vue` 被 externalize。产物输出到 `dist/`（`xiaodao-flowchart.es.js`、`xiaodao-flowchart.umd.cjs`、`xiaodao-flowchart.css`）以及 `.d.ts` 类型声明。`publicDir` 被禁用，因此演示资源不会进入库包。
-- **演示构建（`npm run build:demo`）** —— `vite build --mode demo` 将配置切换为普通**应用**构建（入口 `index.html` → `App.vue`），输出到 `dist-demo/`，并启用 `publicDir: 'public'` 以拷贝 favicon 等资源。它适用于部署在线演示；`dist-demo/` 与 `dist/` 一样被 git 忽略。
+- **库构建（`npm run build`）**：入口 `src/components/flowchart/index.ts`；格式 `es` + `umd`；`vue` 被 externalize。产物输出到 `dist/`（`xiaodao-flowchart.es.js`、`xiaodao-flowchart.umd.cjs`、`xiaodao-flowchart.css`）以及 `.d.ts` 类型声明。`publicDir` 被禁用，因此演示资源不会进入库包。
+- **演示构建（`npm run build:demo`）**：`vite build --mode demo` 将配置切换为普通**应用**构建（入口 `index.html` → `App.vue`），输出到 `dist-demo/`，并启用 `publicDir: 'public'` 以拷贝 favicon 等资源。它适用于部署在线演示；`dist-demo/` 与 `dist/` 一样被 git 忽略。
 - `package.json` 中的 `files: ["dist"]` 确保只有库包被发布到 npm；`dist-demo` 自然被排除。
 
 ---
@@ -310,7 +310,7 @@ const historyIndex = ref(-1)
 - **新增语言：** 扩展 `useFlowchartI18n.ts` 中的 `messages` 与 `I18nKey`。
 - **自定义主题：** 在引入样式表之后覆盖 `--fc-*` 变量。
 - **自定义路由：** 替换 `utils/edgeRouting.ts` 中的 `computeOrthogonalWaypoints` / `buildRoundedPath`；其余部分只消费生成的 `d` 字符串。
-- **自定义持久化：** 由于状态就是普通的 `FlowchartData` 对象，可直接序列化/恢复（例如 `JSON.stringify(data.value)`）——无需专有格式。
+- **自定义持久化：** 由于状态就是普通的 `FlowchartData` 对象，可直接序列化/恢复（例如 `JSON.stringify(data.value)`），无需专有格式。
 
 ---
 
