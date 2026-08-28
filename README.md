@@ -1,8 +1,14 @@
 # xiaodao-flowchart
 
-> A pure front-end, interactive flowchart editor component built with **Vue 3 + TypeScript + Vite**.
+[中文](./README.ZH.md) | **English** | [Demo](https://xiaodaozhi.com/xiaodao-flowchart.html)
 
-`xiaodao-flowchart` is a self-contained Vue 3 component for drawing flowcharts directly in the browser. It ships a full editing experience, multiple node shapes, smart orthogonal edge routing, pan/zoom canvas, inline text editing, undo/redo, theming, and i18n, while staying data-driven through a single `v-model` source of truth.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Vue 3](https://img.shields.io/badge/Vue-3.3+-42b883.svg)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-~6-3178C6.svg)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-8.0+-646CFF.svg)](https://vitejs.dev/)
+[![Downloads](https://img.shields.io/npm/d18m/xiaodao-flowchart)](https://www.npmjs.com/package/xiaodao-flowchart)
+
+A self-contained Vue 3 component for drawing flowcharts and diagrams directly in the browser. It ships a full editing experience with multiple node shapes, smart orthogonal edge routing, a pan/zoom canvas, inline text editing, undo/redo, theming, and i18n, while staying data-driven through a single `v-model` source of truth. Everything is rendered as crisp SVG and scales cleanly at any zoom level.
 
 ![Preview](./img/preview.png)
 
@@ -11,189 +17,187 @@
 ## Table of Contents
 
 - [Features](#features)
-- [Tech Stack](#tech-stack)
 - [Installation](#installation)
-- [Scripts](#scripts)
-- [Usage](#usage)
+- [Quick Start](#quick-start)
+- [Basic Usage](#basic-usage)
 - [Props](#props)
 - [Events](#events)
-- [Data Structures](#data-structures)
-- [Project Structure](#project-structure)
-- [Interaction Guide](#interaction-guide)
-- [Edge Routing Algorithm](#edge-routing-algorithm)
-- [Theme Customization](#theme-customization)
-- [Internationalization](#internationalization)
+- [Data Model](#data-model)
+- [Architecture](#architecture)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
-- [Browser Compatibility](#browser-compatibility)
+- [Edge Routing Algorithm](#edge-routing-algorithm)
+- [Theming](#theming)
+- [Internationalization](#internationalization)
+- [Building](#building)
+- [Roadmap](#roadmap)
+- [Tech Stack](#tech-stack)
 - [License](#license)
 
 ---
 
 ## Features
 
+### Core
+
 - **5 node types**: Rectangle, diamond, ellipse, parallelogram, and free-text nodes. All support drag, resize, inline label editing, and custom styling.
 - **Smart orthogonal edges**: Automatic orthogonal path routing with multi-segment polylines, node self-avoidance, and third-party node detour.
 - **Draggable edge handles**: Selected edges display draggable source/target endpoint handles for reconnecting to other nodes (re-routing).
-- **Free lines**: Draw standalone connector lines on the canvas (independent of nodes), with selectable/movable endpoints.
-- **Canvas controls**: Mouse-wheel zoom (0.1× – 10×), right/middle-click pan, and an adaptive multi-level dot grid.
+- **Free lines**: Draw standalone connector lines on the canvas (independent of nodes), with selectable and movable endpoints.
 - **Node sidebar**: Drag node templates from the sidebar onto the canvas to create nodes. Responsive layout (auto-collapses on mobile).
 - **8-way resize**: 8 resize handles appear on selected nodes, with aspect-ratio constraints and minimum-size enforcement.
 - **Inline text editing**: Double-click a node to enter edit mode with multi-line text support.
-- **Light / dark themes**: Driven by CSS custom properties (60+ variables covering every UI element). Toggle via the `theme` prop.
+- **Preset color palettes**: 18 colors for nodes and 15 colors for edges, with automatic text-contrast calculation (black or white).
+- **Light / dark themes**: Driven by 60+ CSS custom properties (`--fc-*`). Toggle via the `theme` prop.
 - **Internationalization**: Built-in Chinese (`zh-CN`) and English (`en-US`). Switch via the `locale` prop.
-- **Preset color palettes**: 18 colors for nodes + 15 colors for edges, with automatic text-contrast calculation (black/white).
-- **Keyboard shortcuts**: Undo/Redo (`Ctrl+Z`/`Y`), Cut/Copy/Paste (`Ctrl+X`/`C`/`V`), Delete/Backspace to remove, arrow keys to nudge (`Shift` accelerates 4×), Escape to cancel.
-- **External text paste**: Paste plain text from the system clipboard to create a text node at the viewport center.
+- **Undo / Redo**: Full state snapshots of the diagram data (up to 50 steps).
+- **Cut / Copy / Paste**: Internal clipboard for nodes, edges, and free lines, plus external plain-text paste (creates a text node at the viewport center).
 - **`v-model` data-driven**: Single source of truth with two-way binding via the `update:modelValue` event.
-- **Full TypeScript coverage**: Complete type definitions, with composable and model types exported for external use.
 
----
+### Interaction
 
-## Tech Stack
+- **Canvas controls**: Mouse-wheel zoom (0.1x to 10x), right or middle-click pan, and an adaptive multi-level dot grid.
+- **Node drag and resize**: Drag nodes freely; 8 resize handles with aspect-ratio constraints and a minimum size.
+- **Connection drawing**: Drag from a node anchor to another node or anchor to create an edge; hover an edge to reveal draggable endpoint handles for re-routing.
+- **Free-line drawing**: Use the sidebar line tool to draw standalone connector lines, then drag their endpoints.
+- **Selection**: Click to select a node, edge, or free line; click the canvas to clear; use the keyboard arrows to nudge.
+- **Sidebar drag-create**: Drag node templates from the sidebar onto the canvas (responsive, auto-collapses on mobile).
+- **Keyboard shortcuts**: Undo/redo, cut/copy/paste, delete, arrow nudge (Shift accelerates 4x), and Escape to cancel.
+- **Touch and mobile**: The `mobile` prop collapses the sidebar and optimizes touch handling.
 
-| Technology | Version |
-|------------|---------|
-| Vue        | ^3.5.40 |
-| TypeScript | ~6.0.2  |
-| Vite       | ^8.2.0  |
-| nanoid     | ^5.1.16 |
+### Visual
+
+- **Light / dark theme**: Full color palette via 60+ CSS custom properties.
+- **Internationalization**: English and Chinese out of the box; all toolbar and tooltip labels auto-localize.
+- **SVG rendering**: A pure SVG canvas with a single world-space transform group, staying crisp at any zoom.
+- **Preset palettes**: 18 node colors and 15 edge colors with automatic contrast.
 
 ---
 
 ## Installation
 
-Install from npm (or your registry of choice):
-
 ```bash
+# pnpm (recommended)
+pnpm add xiaodao-flowchart
+
+# npm
 npm install xiaodao-flowchart
+
+# yarn
+yarn add xiaodao-flowchart
 ```
 
-`vue` is a **peer dependency** (`^3.3.0`), so make sure it is already present in your project.
+Import the component and its stylesheet:
 
-> The component imports the stylesheet from `xiaodao-flowchart/style.css` (see [Usage](#usage)).
+```ts
+import FlowchartContainer from 'xiaodao-flowchart'
+import 'xiaodao-flowchart/style.css'
+```
 
-### Local development
+### Peer Dependencies
 
-To run the demo/dev server from a clone of this repository:
+- `vue` `^3.3.0`
+
+---
+
+## Quick Start
 
 ```bash
-npm install
-npm run dev
+# Clone the repository
+git clone https://github.com/xiaodaozhi/xiaodao-flowchart.git
+cd xiaodao-flowchart
+
+# Install dependencies
+pnpm install
+
+# Start the dev server
+pnpm dev
 ```
 
----
-
-## Scripts
-
-| Script           | Description                                                                 |
-|------------------|-----------------------------------------------------------------------------|
-| `npm run dev`    | Start the Vite dev server (demo page = `index.html` → `App.vue`).          |
-| `npm run build`  | Type-check, build the **library** bundle into `dist/`, and emit `.d.ts`.    |
-| `npm run build:demo` | Build the standalone demo **app** (includes `App.vue`) into `dist-demo/`. |
-| `npm run preview`| Preview the built library demo via `vite preview`.                          |
-| `npm run typecheck` | Run `vue-tsc` type-checking only.                                        |
-
-`dist/` (library output) and `dist-demo/` (demo output) are both git-ignored.
+Navigate to `http://localhost:5173` to see the demo application (`src/App.vue`).
 
 ---
 
-## Usage
+## Basic Usage
 
 ```vue
 <template>
   <FlowchartContainer
     v-model="data"
     theme="light"
-    locale="en-US"
-    @node-select="onNodeSelect"
-    @node-dbl-click="onNodeDblClick"
+    locale="zh-CN"
+    :width="800"
+    :height="600"
   />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { FlowchartContainer } from 'xiaodao-flowchart'
+import FlowchartContainer from 'xiaodao-flowchart'
 import 'xiaodao-flowchart/style.css'
 import type { FlowchartData } from 'xiaodao-flowchart'
 
 const data = ref<FlowchartData>({
   nodes: [
-    { id: 'start', type: 'rectangle', x: 200, y: 150, width: 160, height: 80, label: 'Start', style: { backgroundColor: '#E8F5E9' } },
-    { id: 'decision', type: 'diamond', x: 220, y: 320, width: 120, height: 120, label: 'Condition?', style: { backgroundColor: '#FFF3E0' } },
-    { id: 'end', type: 'ellipse', x: 200, y: 680, width: 160, height: 100, label: 'End', style: { backgroundColor: '#F3E5F5' } },
+    { id: 'n1', type: 'rectangle', x: 80, y: 80, width: 160, height: 60, label: 'Start' },
+    { id: 'n2', type: 'diamond', x: 80, y: 220, width: 160, height: 80, label: 'Decision?' },
   ],
   edges: [
-    { id: 'e1', sourceNodeId: 'start', sourceAnchor: 'bottom', targetNodeId: 'decision', targetAnchor: 'top' },
-    { id: 'e2', sourceNodeId: 'decision', sourceAnchor: 'bottom', targetNodeId: 'end', targetAnchor: 'top' },
+    { id: 'e1', sourceNodeId: 'n1', sourceAnchor: 'bottom', targetNodeId: 'n2', targetAnchor: 'top' },
   ],
-  // freeLines?: FreeLine[], optional standalone connector lines
 })
-
-function onNodeSelect(nodeId: string | null) { /* ... */ }
-function onNodeDblClick(nodeId: string) { /* ... */ }
 </script>
 ```
-
-> When using the library locally from source (not from npm), import from the relative source path, e.g. `import { FlowchartContainer } from './components/flowchart'`.
 
 ---
 
 ## Props
 
-| Prop         | Type                         | Default   | Description                                                        |
-|--------------|------------------------------|-----------|--------------------------------------------------------------------|
-| `modelValue` | `FlowchartData`              | | Flowchart data, bound with `v-model` (two-way).                    |
-| `theme`      | `'light' \| 'dark'`          | `'light'` | Color theme.                                                       |
-| `locale`     | `'zh-CN' \| 'en-US'`         | `'zh-CN'` | UI language.                                                       |
-| `mobile`     | `boolean`                    | `false`   | Mobile mode, collapses the sidebar and optimizes touch handling.  |
-| `width`      | `string \| number`           | | Container width (number → pixels). Defaults to `100%`.             |
-| `height`     | `string \| number`           | | Container height (number → pixels). Defaults to `100%`/`100vh`.    |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `modelValue` (v-model) | `FlowchartData` | `[]` | Diagram data, bound with `v-model` (two-way). |
+| `theme` | `'light' \| 'dark'` | `'light'` | Theme mode. |
+| `locale` | `'zh-CN' \| 'en-US'` | `'zh-CN'` | Language for built-in labels. |
+| `mobile` | `boolean` | `false` | Mobile mode: collapses the sidebar and optimizes touch handling. |
+| `width` | `string \| number` | `100%` | Container width (a number means pixels). |
+| `height` | `string \| number` | `100%` / `100vh` | Container height (a number means pixels). |
 
 ---
 
 ## Events
 
-| Event                | Payload                | Description                                  |
-|----------------------|------------------------|----------------------------------------------|
-| `update:modelValue`  | `FlowchartData`        | Emitted whenever the data changes.           |
-| `nodeSelect`         | `nodeId: string \| null` | A node was selected (`null` = deselected). |
-| `nodeDblClick`       | `nodeId: string`       | A node was double-clicked (enter edit mode). |
-| `edgeSelect`         | `edgeId: string \| null` | An edge was selected (`null` = deselected). |
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `update:modelValue` | `FlowchartData` | Emitted on every data change (the `v-model` payload). |
+| `nodeSelect` | `string \| null` | Selected node id, or `null` when the selection is cleared. |
+| `nodeDblClick` | `string` | Node id on double-click (enters inline edit). |
+| `edgeSelect` | `string \| null` | Selected edge id, or `null` when the selection is cleared. |
 
 ---
 
-## Data Structures
-
-All types are exported from the package root, e.g. `import type { FlowchartData, FlowchartNode, ... } from 'xiaodao-flowchart'`.
+## Data Model
 
 ### `FlowchartData`
+
+The external data format used for `v-model` two-way binding:
 
 ```typescript
 interface FlowchartData {
   nodes: FlowchartNode[]
   edges: FlowchartEdge[]
-  freeLines?: FreeLine[]   // optional standalone connector lines
+  freeLines?: FreeLine[]
 }
 ```
+
+- **`nodes`**: Array of diagram nodes.
+- **`edges`**: Array of connections between nodes.
+- **`freeLines`**: Optional standalone connector lines that are not attached to nodes.
 
 ### `FlowchartNode`
 
 ```typescript
-type NodeType = 'rectangle' | 'diamond' | 'ellipse' | 'parallelogram' | 'text'
-
-interface NodeStyle {
-  backgroundColor?: string
-  borderColor?: string
-  borderWidth?: number
-  textColor?: string
-  fontSize?: number
-  borderRadius?: number
-  opacity?: number
-}
-
 interface FlowchartNode {
   id: string
-  type: NodeType
+  type: 'rectangle' | 'diamond' | 'ellipse' | 'parallelogram' | 'text'
   x: number
   y: number
   width: number
@@ -203,25 +207,15 @@ interface FlowchartNode {
 }
 ```
 
-If `style.backgroundColor` is omitted, the node fill is derived from the active theme (light/dark). Text color is computed automatically via contrast.
-
 ### `FlowchartEdge`
 
 ```typescript
-type AnchorPosition = 'top' | 'right' | 'bottom' | 'left'
-
-interface EdgeStyle {
-  strokeColor?: string
-  strokeWidth?: number
-  cornerRadius?: number
-}
-
 interface FlowchartEdge {
   id: string
   sourceNodeId: string
-  sourceAnchor: AnchorPosition
+  sourceAnchor: 'top' | 'right' | 'bottom' | 'left'
   targetNodeId: string
-  targetAnchor: AnchorPosition
+  targetAnchor: 'top' | 'right' | 'bottom' | 'left'
   label?: string
   style?: EdgeStyle
 }
@@ -230,11 +224,6 @@ interface FlowchartEdge {
 ### `FreeLine`
 
 ```typescript
-interface FreeLineStyle {
-  strokeColor?: string
-  strokeWidth?: number
-}
-
 interface FreeLine {
   id: string
   x1: number
@@ -245,161 +234,251 @@ interface FreeLine {
 }
 ```
 
-### Exported constants
-
-These are useful for building UIs or applying defaults:
+### `NodeStyle` / `EdgeStyle` / `FreeLineStyle`
 
 ```typescript
-import {
-  DEFAULT_NODE_STYLE,   // Required<NodeStyle>
-  DEFAULT_EDGE_STYLE,   // Required<EdgeStyle>
-  DEFAULT_FREE_LINE_STYLE,
-  MIN_NODE_WIDTH, MIN_NODE_HEIGHT,
-  MIN_ZOOM, MAX_ZOOM, ZOOM_STEP,
-  GRID_SIZE, BASE_GRID_SIZE,
-} from 'xiaodao-flowchart'
-```
+interface NodeStyle {
+  backgroundColor?: string
+  borderColor?: string
+  borderWidth?: number
+  textColor?: string
+  fontSize?: number
+  borderRadius?: number
+  opacity?: number
+}
 
----
+interface EdgeStyle {
+  strokeColor?: string
+  strokeWidth?: number
+  cornerRadius?: number
+}
 
-## Project Structure
-
-```
-src/
-├── main.ts                              # App entry point
-├── App.vue                              # Demo page (sets the browser page title)
-├── style.css                            # Global style reset
-└── components/flowchart/
-    ├── index.ts                         # Component & type exports
-    ├── FlowchartContainer.vue           # Top-level container (state orchestration)
-    ├── FlowchartCanvas.vue              # SVG canvas (core interaction + rendering)
-    ├── FlowchartNode.vue                # Node rendering (5 shapes + label)
-    ├── FlowchartEdge.vue                # Edge rendering (orthogonal routing)
-    ├── NodeSidebar.vue                  # Node template sidebar
-    ├── AnchorPoints.vue                 # Anchor point controls
-    ├── ResizeHandles.vue                # Resize handles (8 directions)
-    ├── TextNodeEditor.vue               # Inline text editor
-    ├── NodeActionBar.vue                # Node action bar (color picker)
-    ├── EdgeActionBar.vue                # Edge / free-line action bar (color picker)
-    ├── types/
-    │   └── index.ts                    # All type definitions & constants
-    ├── utils/
-    │   ├── anchorUtils.ts              # Anchor position calculation
-    │   ├── colorUtils.ts               # Color presets & contrast
-    │   ├── edgeRouting.ts              # Orthogonal path routing engine
-    │   ├── geometry.ts                 # Geometry utility functions
-    │   └── idGenerator.ts              # Unique ID generation (nanoid)
-    ├── composables/
-    │   ├── useFlowchartModel.ts        # Data model CRUD
-    │   ├── useCanvasPanZoom.ts         # Canvas pan & zoom
-    │   ├── useEdgeDrawing.ts           # Edge drawing state machine
-    │   ├── useDragFromSidebar.ts       # Sidebar drag-to-create
-    │   ├── useKeyboard.ts              # Keyboard shortcuts
-    │   ├── useSelection.ts             # Selection state management
-    │   ├── useFlowchartContext.ts      # Dependency injection (theme / locale / mobile)
-    │   └── useFlowchartI18n.ts         # Internationalization
-    └── style/
-        └── theme.css                   # Theme CSS custom properties
-```
-
-For a deep dive into how these pieces fit together, see **[DOC.md](./DOC.md)**.
-
----
-
-## Interaction Guide
-
-| Action                | Method                                                                 |
-|-----------------------|------------------------------------------------------------------------|
-| Create a node         | Drag a template from the left sidebar onto the canvas                  |
-| Create a node (tool)  | Activate a node tool in the sidebar, then drag on the canvas           |
-| Move a node           | Drag the node                                                          |
-| Resize a node         | Drag any of the 8 resize handles                                       |
-| Edit text             | Double-click the node                                                  |
-| Create an edge        | Drag from a source node's anchor to a target node's anchor             |
-| Reconnect an edge     | Select the edge, then drag its endpoint handle                         |
-| Draw a free line      | Activate the line tool (or `Shift`+drag on empty canvas)               |
-| Select node / edge    | Single-click                                                           |
-| Delete                | Select and press `Delete` / `Backspace`, `Ctrl+X`, or the trash button |
-| Change color          | Select and click a color button in the bottom action bar               |
-| Undo / Redo           | `Ctrl+Z` / `Ctrl+Shift+Z` or `Ctrl+Y` (⌘ on macOS)                     |
-| Cut / Copy / Paste    | `Ctrl+X` / `Ctrl+C` / `Ctrl+V` (⌘ on macOS)                            |
-| Paste external text   | `Ctrl+V` with no flowchart content copied → creates a text node       |
-| Pan canvas            | Right-click drag or middle-click drag on empty area                    |
-| Zoom canvas           | Mouse wheel                                                            |
-| Nudge a node          | Arrow keys (hold `Shift` to accelerate 4×)                             |
-| Cancel operation      | `Escape`                                                               |
-
----
-
-## Edge Routing Algorithm
-
-The component implements a complete orthogonal edge-routing engine (`utils/edgeRouting.ts`):
-
-- **Basic path construction**: Automatically selects L-shaped, Z-shaped, or U-shaped polyline paths based on source/target anchor directions.
-- **Node self-avoidance**: Paths automatically avoid the source and target nodes themselves during generation.
-- **Third-party node detour**: Detects when a path would pass through other nodes and generates detour polylines.
-- **Grid-based path search**: For complex scenarios, builds a grid graph and uses a Dijkstra shortest-path search with turn penalties.
-- **Path cleaning**: Automatically merges collinear segments and deduplicates consecutive points.
-- **Rounded corners**: `buildRoundedPath` produces smooth rounded corners (`cornerRadius`, default `8`).
-
-Arrowheads are rendered as per-color SVG `<marker>` definitions (one marker per distinct stroke color) so they work across browsers including iOS Safari.
-
----
-
-## Theme Customization
-
-The theme system is implemented with 60+ CSS custom properties (prefixed `--fc-*`), covering the canvas, sidebar, action bars, editor, nodes, edges, and grid. Light and dark variable sets are defined in `style/theme.css` and toggled via the `.theme-dark` class on the container.
-
-To create a custom theme, override the corresponding CSS custom properties from your own stylesheet **after** importing `xiaodao-flowchart/style.css`:
-
-```css
-/* Example: tint the canvas background */
-.xiaodao-flowchart .flowchart-container {
-  --fc-canvas-bg: #f0f4ff;
+interface FreeLineStyle {
+  strokeColor?: string
+  strokeWidth?: number
 }
 ```
 
-> Node default fills and text colors also adapt to the theme automatically; only override them if you want a fully custom look.
+### Type Exports
+
+```typescript
+import FlowchartContainer from 'xiaodao-flowchart'
+
+import type {
+  FlowchartData,
+  FlowchartNode,
+  FlowchartEdge,
+  FreeLine,
+  FreeLineStyle,
+  NodeType,
+  AnchorPosition,
+  NodeStyle,
+  EdgeStyle,
+  SidebarNodeTemplate,
+  Theme,
+  Locale,
+} from 'xiaodao-flowchart'
+```
+
+All model and style types are exported for external use.
 
 ---
 
-## Internationalization
+## Architecture
 
-UI strings live in `composables/useFlowchartI18n.ts`, with full `zh-CN` and `en-US` message maps. Switch the active locale with the `locale` prop:
-
-```vue
-<FlowchartContainer v-model="data" locale="en-US" />
+```src/
+├── main.ts                            # Demo entry
+├── App.vue                            # Demo application (also the build:demo entry)
+└── components/
+    └── flowchart/
+        ├── index.ts                   # Library entry: component + types barrel
+        ├── FlowchartContainer.vue     # Root component: toolbar + sidebar + canvas + events
+        ├── FlowchartCanvas.vue        # SVG canvas: rendering + unified pointer-event dispatch
+        ├── FlowchartNode.vue          # Node shape rendering (SVG + foreignObject label)
+        ├── FlowchartEdge.vue          # Edge orthogonal routing + arrow marker
+        ├── NodeSidebar.vue            # Sidebar drag source (node/line templates)
+        ├── NodeActionBar.vue          # Node color picker
+        ├── EdgeActionBar.vue          # Edge / free-line color picker
+        ├── composables/
+        │   ├── useFlowchartContext.ts  # provide/inject keys for theme / locale / mobile
+        │   ├── useFlowchartModel.ts    # v-model store, immutable commits, history
+        │   ├── useFlowchartI18n.ts     # i18n message maps (zh-CN / en-US)
+        │   ├── useCanvasPanZoom.ts      # Pan/zoom math, wheel handling, screen<->world
+        │   ├── useEdgeDrawing.ts        # Connection drag state machine
+        │   ├── useSelection.ts          # Selection state
+        │   ├── useDragFromSidebar.ts    # Sidebar node drag-create
+        │   └── useKeyboard.ts           # Keyboard shortcuts
+        ├── style/
+        │   └── theme.css                # CSS custom properties (60+ --fc-* vars)
+        └── utils/
+            ├── anchorUtils.ts          # Anchor point geometry
+            ├── geometry.ts             # Snap-to-grid and point math
+            ├── colorUtils.ts           # Preset palettes + contrast calculation
+            └── idGenerator.ts          # Id generation (nanoid)
 ```
 
-Color names (used in the action-bar tooltips) are also localized. To add a new language, extend the `messages` record and the `I18nKey` union in `useFlowchartI18n.ts`.
+### Design Principles
+
+- **Single source of truth (`v-model`)**: `useFlowchartModel` owns the data. Every mutation produces a new immutable `FlowchartData` and emits `update:modelValue`, so the parent always holds the canonical state.
+- **SVG with a single world-space transform**: One `<g transform="translate(panX, panY) scale(zoom)">` contains all diagram content (nodes, edges, free lines, handles). Panning and zooming only update this transform, never per-element positions.
+- **Smart orthogonal routing**: Edges avoid the source and target nodes themselves and detour around third-party nodes; complex cases fall back to a grid-based Dijkstra search.
+- **Theme via CSS variables**: 60+ `--fc-*` custom properties are injected through `provide`/`inject`; switching the `theme` prop re-skins the whole component.
+- **i18n via `provide`/`inject`**: Built-in `zh-CN` and `en-US` maps, switched by the `locale` prop.
+- **Composition API with single-responsibility composables**: Each concern (model, selection, pan/zoom, edge drawing, keyboard) lives in its own composable sharing a small context.
+- **Undo / redo**: Full `FlowchartData` snapshots (up to 50 steps) drive history.
+- **Snap-to-grid**: The grid size adapts to the current zoom level for comfortable editing.
 
 ---
 
 ## Keyboard Shortcuts
 
-| Shortcut                | Action                                  |
-|-------------------------|-----------------------------------------|
-| `Ctrl/Cmd + Z`          | Undo                                    |
-| `Ctrl/Cmd + Shift + Z`  | Redo                                    |
-| `Ctrl/Cmd + Y`          | Redo                                    |
-| `Ctrl/Cmd + X`          | Cut selected node / edge / free line    |
-| `Ctrl/Cmd + C`          | Copy selected item                      |
-| `Ctrl/Cmd + V`          | Paste (or paste external text as node)  |
-| `Delete` / `Backspace`  | Delete selected item                    |
-| Arrow keys              | Nudge selected node (1 grid step)       |
-| `Shift` + Arrow keys    | Nudge selected node (4 grid steps)      |
-| `Escape`                | Cancel current drawing / selection      |
+### Editing
 
-Undo/redo keeps a history stack (max 50 snapshots) of `FlowchartData`.
+| Keys | Action |
+|------|--------|
+| `Double-click` / `Enter` | Enter inline text edit on the selected node |
+| `Escape` | Cancel editing, drawing, or current selection |
+| `Delete` / `Backspace` | Remove the selected node, edge, or free line |
+
+### Clipboard and History
+
+| Keys | Action |
+|------|--------|
+| `Ctrl/Cmd+C` | Copy the selection (node / edge / free line) |
+| `Ctrl/Cmd+X` | Cut the selection |
+| `Ctrl/Cmd+V` | Paste (internal clipboard, or external plain text as a text node) |
+| `Ctrl/Cmd+Z` | Undo |
+| `Ctrl/Cmd+Y` / `Ctrl/Cmd+Shift+Z` | Redo |
+
+### Canvas and Selection
+
+| Keys | Action |
+|------|--------|
+| `Arrow keys` | Nudge the selected node (1 grid step) |
+| `Shift + Arrow keys` | Nudge the selected node faster (4x grid step) |
+| `Mouse wheel` | Zoom in / out at the cursor |
+| `Right / Middle drag` | Pan the canvas |
 
 ---
 
-## Browser Compatibility
+## Edge Routing Algorithm
 
-Supports all modern browsers (Chrome, Firefox, Safari, Edge). Built on **SVG + CSS Custom Properties + the Pointer Events API**. Touch interactions are supported via the `mobile` prop.
+The edge router builds an orthogonal (right-angle) polyline between two node anchors.
+
+- **Basic path construction**: Automatically selects an L-shaped, Z-shaped, or U-shaped polyline based on the source and target anchor directions.
+- **Node self-avoidance**: Paths automatically avoid the source and target nodes themselves during generation.
+- **Third-party node detour**: Detects when a path would pass through other nodes and generates detour polylines.
+- **Grid-based path search**: For complex scenarios, it builds a grid graph and uses a Dijkstra shortest-path search with turn penalties.
+- **Path cleaning**: Automatically merges collinear segments and removes duplicate consecutive points.
+- **Rounded corners**: `buildRoundedPath` produces smooth rounded corners (default `cornerRadius` is 8).
+
+---
+
+## Theming
+
+### CSS Variable Injection
+
+Theme colors are injected as CSS custom properties prefixed with `--fc-`:
+
+```css
+--fc-bg, --fc-grid-bg, --fc-grid-line, --fc-selection-bg,
+--fc-node-fill, --fc-node-border, --fc-node-text,
+--fc-edge-stroke, --fc-sidebar-bg, --fc-sidebar-border,
+--fc-bar-bg, --fc-toolbar-bg,
+/* ... and many more */
+```
+
+### Custom Theme
+
+Pass `theme="dark"` for dark mode, or wrap the component and override CSS variables for full customization:
+
+```vue
+<template>
+  <div style="--fc-bg: #1a1a2e; --fc-node-text: #e0e0e0;">
+    <FlowchartContainer v-model="data" theme="dark" />
+  </div>
+</template>
+```
+
+### Internationalization
+
+Built-in languages: `'zh-CN'` and `'en-US'`. Pass the `locale` prop to switch; toolbar labels, tooltips, and context menus are automatically localized.
+
+---
+
+## Building
+
+```bash
+# Type-check only
+pnpm typecheck
+
+# Production library build (type-check + vite build + d.ts emit)
+pnpm build
+
+# Demo build (normal app build into dist-demo)
+pnpm build:demo
+
+# Preview the production build
+pnpm preview
+```
+
+### Build Output
+
+| File | Description |
+|------|-------------|
+| `dist/xiaodao-flowchart.es.js` | ES module (for bundlers) |
+| `dist/xiaodao-flowchart.umd.cjs` | UMD bundle (for direct `<script>` usage) |
+| `dist/xiaodao-flowchart.css` | Extracted stylesheet |
+| `dist/types/` | TypeScript declaration files |
+
+The `build:demo` script emits a standalone demo app into `dist-demo/`, which is git-ignored (like `dist/`).
+
+### CI/CD
+
+The project includes a GitHub Actions workflow (`.github/workflows/publish.yml`) for automated publishing to npm.
+
+---
+
+## Roadmap
+
+### Near-term
+
+- [x] 5 node types (rectangle, diamond, ellipse, parallelogram, text)
+- [x] Smart orthogonal edge routing with node avoidance and detour
+- [x] Free lines and draggable edge re-routing
+- [x] Undo / redo and cut / copy / paste
+- [x] Light / dark themes and i18n (zh-CN, en-US)
+- [ ] Export to PNG / SVG
+- [ ] Minimap / overview navigation
+
+### Mid-term
+
+- [ ] Multi-selection and group move
+- [ ] Alignment guides and smart snapping
+- [ ] Edge labels with rich positioning
+- [ ] Subgraph / container nodes
+
+### Long-term
+
+- [ ] Plugin system for custom node renderers
+- [ ] Collaborative editing
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Framework | Vue 3 (Composition API + `<script setup>`) | `^3.3` (peer), `^3.5` (dev) |
+| Build | Vite | `^8` |
+| Language | TypeScript (strict) | `~6` |
+| Type Checker | vue-tsc | `^3` |
+| Rendering | SVG 2D (single world-space transform) | - |
+| Package Manager | pnpm / npm | - |
+| CSS | Scoped CSS + CSS Custom Properties | - |
 
 ---
 
 ## License
 
-[MIT](./LICENSE)
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
