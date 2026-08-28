@@ -14,12 +14,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import FlowchartContainer from './components/flowchart/FlowchartContainer.vue'
 import type { FlowchartData } from './components/flowchart/types/index.ts'
 
 const data = ref<FlowchartData>({ nodes: [], edges: [] })
 const selectedNodeId = ref<string | null>(null)
+
+onMounted(() => {
+  document.title = '小刀流程图 | Xiaodao Flowchart'
+})
 
 function onNodeSelect(nodeId: string | null) { selectedNodeId.value = nodeId }
 function onNodeDblClick(nodeId: string) { console.log('Double clicked node:', nodeId) }
