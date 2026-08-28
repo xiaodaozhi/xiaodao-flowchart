@@ -31,6 +31,7 @@
     "dev": "vite",
     "typecheck": "vue-tsc -b",
     "build": "vue-tsc -b && vite build && vue-tsc --emitDeclarationOnly -p tsconfig.build.json",
+    "build:demo": "vite build --mode demo",
     "preview": "vite preview"
   },
   "peerDependencies": {
