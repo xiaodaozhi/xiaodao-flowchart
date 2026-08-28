@@ -1,12 +1,12 @@
-# xiaodao-flowchart
+# Xiaodao Flowchart
 
-[中文](./README.ZH.md) | **English** | [Demo](https://xiaodaozhi.com/xiaodao-flowchart.html)
+[中文](./README.ZH.md) | **English** | [Demo](https://flowchart.xdz.me)
 
+[![Downloads](https://img.shields.io/npm/d18m/xiaodao-flowchart)](https://www.npmjs.com/package/xiaodao-flowchart)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Vue 3](https://img.shields.io/badge/Vue-3.3+-42b883.svg)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-~6-3178C6.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.0+-646CFF.svg)](https://vitejs.dev/)
-[![Downloads](https://img.shields.io/npm/d18m/xiaodao-flowchart)](https://www.npmjs.com/package/xiaodao-flowchart)
 
 A self-contained Vue 3 component for drawing flowcharts and diagrams directly in the browser. It ships a full editing experience with multiple node shapes, smart orthogonal edge routing, a pan/zoom canvas, inline text editing, undo/redo, theming, and i18n, while staying data-driven through a single `v-model` source of truth. Everything is rendered as crisp SVG and scales cleanly at any zoom level.
 

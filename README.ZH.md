@@ -1,12 +1,12 @@
-# xiaodao-flowchart
+# 小刀流程图
 
-[中文](./README.ZH.md) | **English** | [Demo](https://xiaodaozhi.com/xiaodao-flowchart.html)
+**中文** | [English](./README.md) | [Demo](https://flowchart.xdz.me)
 
+[![Downloads](https://img.shields.io/npm/d18m/xiaodao-flowchart)](https://www.npmjs.com/package/xiaodao-flowchart)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Vue 3](https://img.shields.io/badge/Vue-3.3+-42b883.svg)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-~6-3178C6.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.0+-646CFF.svg)](https://vitejs.dev/)
-[![Downloads](https://img.shields.io/npm/d18m/xiaodao-flowchart)](https://www.npmjs.com/package/xiaodao-flowchart)
 
 一个自包含的 Vue 3 流程图组件，可在浏览器中直接绘制流程图与示意图。它提供完整的编辑体验，包含多种节点形状、智能正交连线、画布平移/缩放、内联文本编辑、撤销/重做、主题切换与国际化，同时以单一的 `v-model` 数据源驱动，保持数据单向可控。所有内容均以清晰的 SVG 渲染，在任意缩放下都保持锐利。
 

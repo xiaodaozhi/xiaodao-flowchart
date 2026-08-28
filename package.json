@@ -1,13 +1,30 @@
 {
   "name": "xiaodao-flowchart",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A Vue 3 component for flowchart drawing",
   "type": "module",
+  "homepage": "https://xiaodaozhi.com/xiaodao-flowchart.html",
   "license": "MIT",
   "keywords": [
     "vue",
+    "vue3",
+    "vue-component",
     "flowchart",
-    "drawing"
+    "diagram",
+    "flow-graph",
+    "graph",
+    "flow",
+    "canvas",
+    "drag",
+    "node",
+    "edge",
+    "流程图",
+    "工作流",
+    "图表",
+    "拖拽画布",
+    "节点",
+    "连线",
+    "可视化"
   ],
   "files": [
     "dist"
