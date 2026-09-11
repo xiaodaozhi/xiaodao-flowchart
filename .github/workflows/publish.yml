@@ -58,7 +58,7 @@ jobs:
 
       - run: npm run build
 
-      # GitHub Packages requires scoped names — temporarily rename
+      # GitHub Packages requires scoped names - temporarily rename
       - run: npm pkg set name=@xiaodaozhi/xiaodao-flowchart
 
       - name: Configure GitHub Packages auth

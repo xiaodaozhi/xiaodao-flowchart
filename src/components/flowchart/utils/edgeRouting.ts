@@ -148,7 +148,7 @@ function safeCrossCoord(axis: 'x' | 'y', a: number, b: number, pair: ZonePair): 
   const first = intervals[0]!;
   const last = intervals[intervals.length - 1]!;
 
-  // Midpoint is blocked — find a path: go above the lowest interval or below the highest
+  // Midpoint is blocked - find a path: go above the lowest interval or below the highest
   // Prefer going above (closer to the source-direction exit)
   if (rangeMin < first.min) {
     const gap = Math.max(rangeMin + EXIT_MARGIN, (rangeMin + first.min) / 2);

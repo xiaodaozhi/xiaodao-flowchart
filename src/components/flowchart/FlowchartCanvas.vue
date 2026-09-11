@@ -409,7 +409,7 @@ const snapSize = computed(() => {
   return BASE * gridLevel.value;
 });
 
-// Grid dot colors — computed from theme since SVG patterns can't use CSS var()
+// Grid dot colors - computed from theme since SVG patterns can't use CSS var()
 const gridDotStrong = computed(() => currentTheme.value === 'dark' ? '#555' : '#B0B0B0');
 const gridDotWeak = computed(() => currentTheme.value === 'dark' ? '#444' : '#D0D0D0');
 
