@@ -1,6 +1,6 @@
 {
   "name": "xiaodao-flowchart",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A Vue 3 component for flowchart drawing",
   "type": "module",
   "homepage": "https://xiaodaozhi.com/xiaodao-flowchart.html",

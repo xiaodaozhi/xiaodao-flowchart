@@ -14,6 +14,7 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -21,7 +22,8 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
-          cache: npm
+
+      - run: npm --version
 
       - run: npm ci
 
@@ -29,15 +31,8 @@ jobs:
 
       - run: npm run build
 
-      - name: Configure npm auth
-        run: npm config set //registry.npmjs.org/:_authToken $env:NPM_TOKEN
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish to npmjs.org
         run: npm publish
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-github:
     name: Publish to GitHub Packages
@@ -60,6 +55,7 @@ jobs:
 
       # GitHub Packages requires scoped names - temporarily rename
       - run: npm pkg set name=@xiaodaozhi/xiaodao-flowchart
+      - run: npm pkg set publishConfig.registry=https://npm.pkg.github.com
 
       - name: Configure GitHub Packages auth
         run: npm config set //npm.pkg.github.com/:_authToken $env:GITHUB_TOKEN
